@@ -1,0 +1,17 @@
+# Ignore all config.json files
+**/config.json
+
+# Ignore all .env files
+**/.env
+
+# Ignore all node_modules directories
+**/node_modules/
+
+# Ignore all dist directories
+**/dist/
+
+# Ignore all log files
+**/*.log
+
+# Ignore all temp folders
+**/temp/
