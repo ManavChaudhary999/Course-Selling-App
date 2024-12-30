@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const errData = (error as AxiosError).response?.data as { message: string };
       console.error('Error logging in:', errData);
       setLoading(false);
-      throw errData;
+      throw errData || {message: 'Login failed'};
     }
     setLoading(false);
   }
@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const errData = (error as AxiosError).response?.data as { message: string };
       console.error('Error logging in:', errData);
       setLoading(false);
-      throw errData;
+      throw errData || {message: 'Login failed'};
     }
     setLoading(false);
   };

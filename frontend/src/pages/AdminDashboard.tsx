@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useCourses } from '@/hooks/useCourses';
-import { StatCard } from '@/components/dashboard/StatCard';
-import { CourseCard } from '@/components/dashboard/CourseCard';
+// import { StatCard } from '@/components/dashboard/StatCard';
+// import { CourseCard } from '@/components/dashboard/CourseCard';
 import { CourseForm } from '@/components/admin/CourseForm';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import {Button} from '../components/ui/button';
@@ -51,17 +51,17 @@ export default function AdminDashboard() {
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h2 className="text-xl font-bold mb-4">Course Statistics</h2>
               <div className="grid grid-cols-2 gap-4">
-                <StatCard title="Total Courses" value={courses.length} />
-                <StatCard title="Total Users" value={users.length} />
+                {/* <StatCard title="Total Courses" value={courses.length} />
+                <StatCard title="Total Users" value={users.length} /> */}
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-lg p-6">
               <h2 className="text-xl font-bold mb-4">Recent Courses</h2>
               <div className="space-y-4">
-                {courses.slice(0, 5).map((course) => (
+                {/* {courses.slice(0, 5).map((course) => (
                   <CourseCard key={course.id} course={course} />
-                ))}
+                ))} */}
               </div>
             </div>
           </div>

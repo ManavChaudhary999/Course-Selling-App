@@ -1,6 +1,6 @@
 import {Outlet} from 'react-router-dom';
 import {Sidebar} from '../components/Sidebar';
-import {UserNav} from '../components/dashboard/UserNav';
+import {UserNav} from '../components/UserNav';
 
 export default function MainLayout() {
   
