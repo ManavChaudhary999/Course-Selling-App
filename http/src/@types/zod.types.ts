@@ -1,15 +1,15 @@
 import z from 'zod';
 
 export const personSchema = z.object({
-    email: z.string().email(),
+    email: z.string().email({message: 'Invalid email address'}),
     password: z.string(),
-    name: z.string().optional(),
+    name: z.string().min(3, {message: 'Name must be at least 3 characters long'}).optional(),
 });
 
 export const courseCreateSchema = z.object({
-    title: z.string(),
+    title: z.string({message: 'Title is required'}),
     description: z.string().optional(),
-    price: z.number().positive(),
+    price: z.number({message: 'Price should be greater than or equal to 0'}).positive(),
     imageUrl: z.string().optional(),
     creatorId: z.number(),
 });

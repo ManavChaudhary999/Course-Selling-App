@@ -12,7 +12,7 @@ adminRouter.post('/signup', async (req: Request, res: Response) => {
 
     if(!success) {
         res.status(401).json({
-            message: error
+            message: error?.issues[0].message || error?.errors[0].message || "Invalid User Credentials"
         });
 
         return;
@@ -48,6 +48,11 @@ adminRouter.post('/signup', async (req: Request, res: Response) => {
         res.json({
             message: "Admin created successfully",
             token,
+            user: {
+                id: admin.id,
+                name: admin.name,
+                email: admin.email,
+            },
         });
 
     } catch (error) {
@@ -62,7 +67,7 @@ adminRouter.post('/signin', async (req: Request, res: Response) => {
 
     if(!success) {
         res.status(401).json({
-            message: error
+            message: error?.issues[0].message || error?.errors[0].message || "Invalid User Credentials"
         });
 
         return;
@@ -86,13 +91,43 @@ adminRouter.post('/signin', async (req: Request, res: Response) => {
     const token = jwt.sign({ id: admin.id }, process.env.JWT_SECRET || "");
     res.json({
         message: 'Admin logged in successfully',
-        token
+        token,
+        user: {
+            id: admin.id,
+            name: admin.name,
+            email: admin.email,
+        },
     });
 
   } catch (error) {
         res.status(500).json({ message: "Internal Server Error" });
   }
 });
+
+adminRouter.get("/profile", AdminMiddleware, async (req, res) => {
+    const adminId = req.adminId;
+
+    try {
+        const admin = await db.user.findUnique({
+            where: {
+                id: adminId,
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+            },
+        });
+
+        res.json({user: admin});
+    }
+    catch (error) {
+        res.status(403).json({
+            msg: "User can not be fetched"
+        })
+    }
+});
+
 
 adminRouter.post('/course', AdminMiddleware, async (req: Request, res: Response) => {
     const adminId = req.adminId;

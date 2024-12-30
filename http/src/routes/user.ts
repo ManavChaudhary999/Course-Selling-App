@@ -12,7 +12,7 @@ userRouter.post("/signup", async (req: Request, res: Response) => {
 
     if(!success) {
         res.status(401).json({
-            message: error
+            message: error?.issues[0].message || error?.errors[0].message || "Invalid User Credentials"
         });
 
         return;
@@ -48,6 +48,11 @@ userRouter.post("/signup", async (req: Request, res: Response) => {
         res.json({
             message: "User created successfully",
             token,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email
+            }
         });
 
     } catch (error) {
@@ -62,7 +67,7 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
 
     if(!success) {
         res.status(401).json({
-            message: error
+            message: error?.issues[0].message || error?.errors[0].message || "Invalid User Credentials"
         });
 
         return;
@@ -86,7 +91,12 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || "");
     res.json({
         message: 'User logged in successfully',
-        token
+        token,
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email
+        }
     });
 
   } catch (error) {
@@ -116,60 +126,30 @@ userRouter.get("/courses", UserMiddleware, async (req, res) => {
     }
 });
 
-// userRouter.post("/courses/:courseId", UserMiddleware, async (req, res) => {
-//   const { username } = req;
-//   const { courseId } = req.params;
+userRouter.get("/profile", UserMiddleware, async (req, res) => {
+    const userId = req.userId;
 
-//   try {
-//     await User.update({
-//       where: {
-//         username,
-//       },
-//       data: {
-//         purchasedCourses: {
-//           push: courseId,
-//         },
-//       },
-//     });
+    try {
+        const user = await db.user.findUnique({
+            where: {
+                id: userId,
+            },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+            },
+        });
 
-//     res.json({
-//       msg: "Course purchased successfully",
-//       courseId,
-//     });
-//   } catch (error) {
-//     res.status(403).send("Course purchase failed");
-//   }
-// });
+        console.log(user);
 
-// userRouter.get("/purchasedCourses", UserMiddleware, async (req, res) => {
-//   const { username } = req;
-
-//   try {
-//     const user = await User.findFirst({
-//       where: {
-//         username,
-//       },
-//       select: {
-//         purchasedCourses: true,
-//       },
-//     });
-
-//     const purchasedCourses = user?.purchasedCourses || [];
-
-//     if (!purchasedCourses.length) return res.send("No Course Purchased yet");
-
-//     const courses = await Course.findMany({
-//       where: {
-//         id: {
-//           in: purchasedCourses,
-//         },
-//       },
-//     });
-
-//     res.json(courses);
-//   } catch (error) {
-//     res.status(500).send(error.message);
-//   }
-// });
+        res.json({user});
+    }
+    catch (error) {
+        res.status(403).json({
+            msg: "User can not be fetched"
+        })
+    }
+});
 
 export default userRouter;
