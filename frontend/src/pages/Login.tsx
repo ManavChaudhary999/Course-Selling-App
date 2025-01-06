@@ -26,7 +26,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<RoleType>(RoleType.USER);
   const [error, setError] = useState<string>("");
-  const {user, login, loading } = useAuth();
+  const {user, isAdmin, login, loading } = useAuth();
   const navigate = useNavigate();
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -48,7 +48,7 @@ export default function Login() {
 
   useEffect(() => {
     if (user) {
-      navigate(role === 'admin' ? '/admin' : "/");
+      navigate(isAdmin ? '/admin' : "/");
     }
   }, [user]);
 

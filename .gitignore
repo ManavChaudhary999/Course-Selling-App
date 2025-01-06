@@ -15,3 +15,6 @@
 
 # Ignore all temp folders
 **/temp/
+
+# Ignore Migration File
+/http/prisma/migrations/

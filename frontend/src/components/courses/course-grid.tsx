@@ -3,8 +3,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
+import { Course } from "@/types"
 
-const courses = [
+const mockCourses = [
   {
     id: 1,
     title: "UI Styleguide With Figma",
@@ -25,7 +26,7 @@ const courses = [
   {
     id: 2,
     title: "Interectoin design With Figma",
-    thumbnail: "/placeholder.svg?height=400&width=600",
+    thumbnail: "",
     level: "Beginner",
     instructor: {
       name: "Killan James",
@@ -81,33 +82,37 @@ const levelStyles = {
   Master: "bg-purple-100 text-purple-800",
 }
 
-export function CourseGrid() {
+export function CourseGrid({courses}: {courses: Course[] | null}) {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-      {courses.map((course) => (
+      {courses?.map((course) => (
         <Card key={course.id} className="overflow-hidden">
           <Link to={`/courses/${course.id}`}>
           <div className="relative aspect-video">
             <img
-              src={course.thumbnail}
+              src={course.image_url || '/placeholder.svg?height=400&width=600'}
               alt={course.title}
             //   fill
               className="object-cover"
             />
-            <span
+            {/* <span
               className={cn(
                 "absolute right-2 top-2 rounded-full px-2 py-0.5 text-xs font-medium",
                 levelStyles[course.level as keyof typeof levelStyles]
               )}
             >
               {course.level}
+            </span> */}
+            <span
+              className="absolute right-2 top-2 rounded-full px-2 py-0.5 text-xs font-medium">
+              {course.Admin.name}
             </span>
           </div>
           </Link>
           <CardContent className="grid gap-2.5 p-4">
             <h3 className="line-clamp-2 font-semibold">{course.title}</h3>
             <div className="flex items-center gap-2">
-              <Avatar className="h-6 w-6">
+              {/* <Avatar className="h-6 w-6">
                 <AvatarImage src={course.instructor.avatar} />
                 <AvatarFallback>
                   {course.instructor.name
@@ -115,20 +120,20 @@ export function CourseGrid() {
                     .map((n) => n[0])
                     .join("")}
                 </AvatarFallback>
-              </Avatar>
-              <span className="text-sm text-muted-foreground">
+              </Avatar> */}
+              {/* <span className="text-sm text-muted-foreground">
                 {course.instructor.name}
-              </span>
+              </span> */}
             </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span>{course.stats.lessons}</span>
+              {/* <span>{course.stats.lessons}</span>
               <span>{course.stats.likes}</span>
-              <span>{course.stats.students}</span>
+              <span>{course.stats.students}</span> */}
             </div>
-            <Progress value={course.progress} className="h-1" />
+            {/* <Progress value={course.progress} className="h-1" /> */}
             <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>Completed: {course.progress}%</span>
-              <span>Days: {course.daysRemaining}</span>
+              {/* <span>Completed: {course.progress}%</span>
+              <span>Days: {course.daysRemaining}</span> */}
             </div>
           </CardContent>
         </Card>

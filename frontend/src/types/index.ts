@@ -6,15 +6,18 @@ export interface User {
 }
 
 export interface Course {
-  id: string;
+  id: number;
   title: string;
-  description: string;
-  duration: number;
-  instructor: string;
-  rating: number;
+  description?: string;
+  // duration: number;
+  // instructor: string;
+  // rating: number;
+  price: number;
   image_url?: string;
-  created_at: string;
-  updated_at: string;
+  // created_at: string;
+  // updated_at: string;
+  creatorId: number;
+  Admin: User;
 }
 
 export interface Enrollment {

@@ -2,19 +2,20 @@
 // dotenv.config();
 import express from 'express';
 import cors from 'cors';
-import adminRouter from './routes/admin';
 import userRouter from './routes/user';
 import courseRouter from './routes/course';
+import courseProgressRouter from './routes/courseProgress';
+import purchaseRouter from './routes/purchase';
 
 const app = express();
 
 app.use(express.json());
 app.use(cors(
-    // {
-    //     origin: ["http://localhost:3000"],
-    //     methods: ["GET", "POST", "PUT", "DELETE"],
-    //     credentials: true,
-    // }
+    {
+        origin: [process.env.CLIENT_URL || "http://localhost:3000"],
+        methods: ["GET", "POST", "PUT", "DELETE"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+    }
 ));
 
 // logger middleware
@@ -23,11 +24,14 @@ app.use((req,res,next) =>{
     next();
 });
 
-app.use("/api/v1/admin", adminRouter)
+// app.use("/api/v1/admin", adminRouter)
 app.use("/api/v1/user", userRouter)
 app.use("/api/v1/course", courseRouter)
+app.use("/api/v1/progress", courseProgressRouter);
+app.use("/api/v1/purchase", purchaseRouter);
 
-const PORT = 8787;
+
+const PORT = process.env.PORT || 8787;
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

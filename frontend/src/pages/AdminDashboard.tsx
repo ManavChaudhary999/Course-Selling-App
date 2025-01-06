@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useCourses } from '@/hooks/useCourses';
+import { useCourses } from '@/contexts/CoursesContext';
 // import { StatCard } from '@/components/dashboard/StatCard';
 // import { CourseCard } from '@/components/dashboard/CourseCard';
 import { CourseForm } from '@/components/admin/CourseForm';
@@ -7,27 +7,35 @@ import { ErrorMessage } from '@/components/ErrorMessage';
 import {Button} from '../components/ui/button';
 import { LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminDashboard() {
-  const { courses, loading, error } = useCourses();
-  const [users, setUsers] = useState([]);
+  // const [users, setUsers] = useState([]);
+  const [error, setError] = useState({ message: '', type: 'error' });
+  const { uploadCourse, loading } = useCourses();
   const { logout } = useAuth();
+  const { toast } = useToast();
 
   const handleAddCourse = async (formData: any) => {
-    // try {
-    //   const { data, error } = await supabase
-    //     .from('courses')
-    //     .insert([
-    //       {
-    //         ...formData,
-    //         duration: parseInt(formData.duration),
-    //       },
-    //     ]);
-
-    //   if (error) throw error;
-    // } catch (err) {
-    //   console.error('Error adding course:', err);
-    // }
+    try {
+      const { course, message } = await uploadCourse(formData);
+      if (course) {        
+        // setError({ message: message, type: 'success' });
+        toast({
+          title: 'Yay!',
+          description: message,
+          variant: 'success'
+        });
+      }
+    } catch (err) {
+      console.error('Error adding course:', err);
+      // setError({ message: (err as Error).message, type: 'error' });
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: (err as Error).message,
+      })
+    }
   };
 
   return (
@@ -39,12 +47,12 @@ export default function AdminDashboard() {
           <Button onClick={logout}><LogOut className="mr-2 h-4 w-4" /></Button>
         </div>
 
-        {error && <ErrorMessage message={error} />}
+        {/* {error.message && <ErrorMessage message={error.message} type={error.type} />} */}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-bold mb-4">Add New Course</h2>
-            <CourseForm onSubmit={handleAddCourse} />
+            <CourseForm onSubmit={handleAddCourse} isLoading={loading} />
           </div>
 
           <div className="space-y-8">

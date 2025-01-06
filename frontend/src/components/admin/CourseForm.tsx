@@ -1,23 +1,32 @@
+import { useAuth } from '@/contexts/AuthContext';
+import { useCourses } from '@/contexts/CoursesContext';
 import { useState } from 'react';
-import { Course } from '@/types';
 
 interface CourseFormData {
   title: string;
-  description: string;
-  duration: string;
-  instructor: string;
+  description?: string;
+  price: number;
+  imageUrl?: string;
+  // duration: string;
+  creatorId: number;
 }
 
 interface CourseFormProps {
   onSubmit: (data: CourseFormData) => void;
+  isLoading: boolean;
 }
 
-export const CourseForm = ({ onSubmit }: CourseFormProps) => {
+export const CourseForm = ({ onSubmit, isLoading }: CourseFormProps) => {
+  const { user} = useAuth();
+  const {} = useCourses();
+  
   const [formData, setFormData] = useState<CourseFormData>({
     title: '',
     description: '',
-    duration: '',
-    instructor: '',
+    // duration: '',
+    price: 0,
+    imageUrl: '',
+    creatorId: user?.id || 0,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -26,8 +35,10 @@ export const CourseForm = ({ onSubmit }: CourseFormProps) => {
     setFormData({
       title: '',
       description: '',
-      duration: '',
-      instructor: '',
+      // duration: '',
+      price: 0,
+      imageUrl: '',
+      creatorId: user?.id || 0,
     });
   };
 
@@ -42,7 +53,7 @@ export const CourseForm = ({ onSubmit }: CourseFormProps) => {
             type="text"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 -ml-2 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             required
           />
         </div>
@@ -53,21 +64,33 @@ export const CourseForm = ({ onSubmit }: CourseFormProps) => {
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="mt-1 -ml-2 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             rows={3}
-            required
           />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">
-            Duration (minutes)
+            Thumbnail Url
+          </label>
+          <input
+            type="text"
+            value={formData.imageUrl}
+            onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+            className="mt-1 -ml-2 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Price (In Rupees)
           </label>
           <input
             type="number"
-            value={formData.duration}
-            onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            value={formData.price}
+            onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+            className="mt-1 -ml-2 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             required
+            step={5}
+            min={0}
           />
         </div>
         <div>
@@ -76,17 +99,18 @@ export const CourseForm = ({ onSubmit }: CourseFormProps) => {
           </label>
           <input
             type="text"
-            value={formData.instructor}
-            onChange={(e) => setFormData({ ...formData, instructor: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            defaultValue={user?.name}
+            className="bg-gray-100 -ml-2 p-2 mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             required
+            readOnly
           />
         </div>
         <button
           type="submit"
+          disabled={isLoading}
           className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
         >
-          Add Course
+          {isLoading ? 'Adding Course...' : 'Add Course'}
         </button>
       </div>
     </form>

@@ -1,8 +1,15 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CourseGrid } from "@/components/courses/course-grid"
 import { CourseTable } from "@/components/courses/course-table"
+import { useCourses } from "@/contexts/CoursesContext"
 
 export default function CoursesPage() {
+  const {courses, loading} = useCourses();
+
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
   return (
     <div className="flex flex-col gap-8">
       <div>
@@ -15,14 +22,14 @@ export default function CoursesPage() {
           <TabsTrigger value="completed">Completed</TabsTrigger>
         </TabsList>
         <TabsContent value="all" className="space-y-8">
-          <CourseGrid />
-          <CourseTable />
+          <CourseGrid courses={courses} />
+          <CourseTable courses={courses} />
         </TabsContent>
         <TabsContent value="active">
-          <CourseGrid />
+          <CourseGrid courses={courses} />
         </TabsContent>
         <TabsContent value="completed">
-          <CourseGrid />
+          <CourseGrid courses={courses} />
         </TabsContent>
       </Tabs>
     </div>
