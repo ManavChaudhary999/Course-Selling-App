@@ -1,23 +1,33 @@
+export interface ControlItemType {
+  name: string;
+  label: string;
+  componentType: string;
+  type?: string;
+  placeholder: string;
+  options?: any[];
+}
+
 export interface User {
-  id: number;
+  id: string;
   email: string;
-  name?: string;
-  // role: 'user' | 'admin';
+  name: string;
+  role: 'INSTRUCTOR' | 'STUDENT';
 }
 
 export interface Course {
-  id: number;
+  id: string;
+  isntructorId: string;
   title: string;
   description?: string;
+  price: number;
+  imageUrl?: string;
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+  isPublished: boolean;
+  categoryId: string;
+  created_at: string;
+  updated_at: string;
   // duration: number;
   // instructor: string;
-  // rating: number;
-  price: number;
-  image_url?: string;
-  // created_at: string;
-  // updated_at: string;
-  creatorId: number;
-  Admin: User;
 }
 
 export interface Enrollment {

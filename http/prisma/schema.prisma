@@ -35,8 +35,7 @@ model Course {
   imageUrl      String?
   level         Level
   isPublished   Boolean         @default(false)
-  categoryId    String
-  category      Category        @relation(fields: [categoryId], references: [id])
+  category      String
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   lectures      Lecture[]
@@ -45,19 +44,12 @@ model Course {
   purchases     Purchase[]
 
   @@index([instructorId])
-  @@index([categoryId])
 }
 
 enum Level {
   BEGINNER
   INTERMEDIATE
   ADVANCED
-}
-
-model Category {
-  id            String        @id @default(uuid())
-  name          String        @unique
-  courses       Course[]
 }
 
 model Enrollment {

@@ -1,7 +1,8 @@
 import { Router, Request, Response } from "express";
 import db from "../db";
-import {courseCreateSchema, courseUpdateSchema, lectureCreateSchema} from '../@types/zod.types';
+import {courseCreateSchema, courseUpdateSchema, lectureCreateSchema, lectureUpdateSchema} from '../@types/zod.types';
 import { AuthMiddleware } from "../middleware/auth";
+import { GetLectureUploadUrl, GetThumbnailUploadUrl } from "../utils";
 
 const courseRouter = Router();
 
@@ -16,11 +17,6 @@ courseRouter.get('/preview', async (req: Request, res: Response) => {
                     select: {
                         name: true,
                         profileUrl: true,
-                    },
-                },
-                category: {
-                    select: {
-                        name: true,
                     },
                 },
             }
@@ -47,11 +43,6 @@ courseRouter.get('/preview/:id', async (req: Request, res: Response) => {
                     select: {
                         name: true,
                         profileUrl: true,
-                    },
-                },
-                category: {
-                    select: {
-                        name: true,
                     },
                 },
                 enrollments: {
@@ -117,7 +108,7 @@ courseRouter.get('/preview/search', async (req: Request, res: Response) => {
                 OR: [
                     { title: { contains: q, mode: "insensitive" } },
                     { description: { contains: q, mode: "insensitive" } },
-                    { category: { name: { contains: q, mode: "insensitive", in: c } } },
+                    { category: { contains: q, mode: "insensitive", in: c } },
                 ]
             },
             orderBy: [
@@ -130,11 +121,6 @@ courseRouter.get('/preview/search', async (req: Request, res: Response) => {
                     select: {
                         name: true,
                         profileUrl: true,
-                    },
-                },
-                category: {
-                    select: {
-                        name: true,
                     },
                 },
             }
@@ -196,7 +182,7 @@ courseRouter.post('/', AuthMiddleware, async (req: Request, res: Response) => {
             return;
         }
 
-        const {title, description, price, imageUrl, level, categoryId, instructorId} = data;
+        const {title, description, price, imageUrl, level, category, instructorId} = data;
 
         const user = await db.user.findUnique({
             where: {
@@ -215,10 +201,10 @@ courseRouter.post('/', AuthMiddleware, async (req: Request, res: Response) => {
             data: {
                 title,
                 description,
-                price,
+                price: price || 0,
                 imageUrl,
                 level,
-                categoryId,
+                category,
                 instructorId,
             },
         });
@@ -235,36 +221,76 @@ courseRouter.post('/', AuthMiddleware, async (req: Request, res: Response) => {
     }
 });
 
-courseRouter.get('/:id', AuthMiddleware, async (req: Request, res: Response) => {
+courseRouter.post('/:id/thumbnail', AuthMiddleware, async (req: Request, res: Response) => {
     try{
         const userId = req.userId;
         const courseId = req.params.id;
-    
-        const {  success, error, data} = courseUpdateSchema.safeParse({...req.body, instructorId: userId});
-    
-        if(!success) {
+        const {fileName, fileType} = req.body;
+
+        if(!courseId || !fileName || !fileType) {
             res.status(401).json({
-                message: error?.issues[0].message || error?.errors[0].message || "Invalid Course Details"
+                message: "CourseId ,fileName and fileType  are required",
             });
-    
             return;
         }
-        const {title, description, price, imageUrl, level, categoryId, instructorId} = data;
+
+        const user = await db.user.findUnique({
+            where: {
+                id: userId,
+            },
+        });
+
+        if(!user || user.role !== 'INSTRUCTOR') {
+            res.status(401).json({
+                message: "User is not an instructor",
+            });
+            return;
+        }
+
+        const {publicId, url} = await GetThumbnailUploadUrl(courseId, fileName, fileType);
 
         const course = await db.course.update({
             where: {
                 id: courseId,
-                instructorId
+                instructorId: userId
             },
             data: {
-                title,
-                description,
-                price,
-                imageUrl,
-                level,
-                categoryId,
-                instructorId,
+                imageUrl: publicId,
             },
+        });
+
+        res.json({
+            message: 'Course Updated Succesfully',
+            presignedUrl: url,
+        });
+    }
+    catch (err) {
+        res.status(403).json({
+            message: (err as Error).message || 'Can not get Upload Url',
+        })
+    }
+});
+
+courseRouter.get('/:id', AuthMiddleware, async (req: Request, res: Response) => {
+    try{
+        const userId = req.userId;
+        const courseId = req.params.id;
+
+        const course = await db.course.findUnique({
+            where: {
+                id: courseId,
+                instructorId: userId
+            },
+            include: {
+                Instructor: {
+                    select: {
+                        id: true,
+                        name: true,
+                        profileUrl: true,
+                    },
+                },
+                lectures: true
+            }
         });
 
         res.json({
@@ -284,7 +310,7 @@ courseRouter.put('/:id', AuthMiddleware, async (req: Request, res: Response) => 
         const userId = req.userId;
         const courseId = req.params.id;
     
-        const {  success, error, data} = courseUpdateSchema.safeParse({...req.body, instructorId: userId});
+        const {  success, error, data} = courseUpdateSchema.safeParse({...req.body, courseId, instructorId: userId});
     
         if(!success) {
             res.status(401).json({
@@ -293,7 +319,36 @@ courseRouter.put('/:id', AuthMiddleware, async (req: Request, res: Response) => 
     
             return;
         }
-        const {title, description, price, imageUrl, level, isPublished, categoryId, instructorId} = data;
+        const {title, description, price, imageUrl, level, isPublished, category, instructorId, thumbnail} = data;
+
+        if(thumbnail?.name && thumbnail.type) {
+            const {publicId, url} = await GetThumbnailUploadUrl(courseId, thumbnail.name, thumbnail.type);
+
+            const course = await db.course.update({
+                where: {
+                    id: courseId,
+                    instructorId
+                },
+                data: {
+                    title,
+                    description,
+                    price,
+                    imageUrl: publicId,
+                    level,
+                    isPublished,
+                    category,
+                    instructorId,
+                },
+            });
+    
+            res.json({
+                message: 'Course Updated Succesfully',
+                course,
+                presignedUrl: url,
+            });
+
+            return;
+        }
         
         const course = await db.course.update({
             where: {
@@ -304,10 +359,9 @@ courseRouter.put('/:id', AuthMiddleware, async (req: Request, res: Response) => 
                 title,
                 description,
                 price,
-                imageUrl,
                 level,
                 isPublished,
-                categoryId,
+                category,
                 instructorId,
             },
         });
@@ -348,7 +402,7 @@ courseRouter.delete('/:id', AuthMiddleware, async (req: Request, res: Response) 
     }
 })
 
-courseRouter.get('/:id/lectures', AuthMiddleware, async (req: Request, res: Response) => {
+courseRouter.get('/:id/lecture', AuthMiddleware, async (req: Request, res: Response) => {
     try{
         const courseId = req.params.id;
         
@@ -369,7 +423,7 @@ courseRouter.get('/:id/lectures', AuthMiddleware, async (req: Request, res: Resp
     }
 });
 
-courseRouter.post('/:id/lectures', AuthMiddleware, async (req: Request, res: Response) => {
+courseRouter.post('/:id/lecture', AuthMiddleware, async (req: Request, res: Response) => {
     try{
         const userId = req.userId;
         const courseId = req.params.id;
@@ -421,7 +475,7 @@ courseRouter.post('/:id/lectures', AuthMiddleware, async (req: Request, res: Res
     }
 })
 
-courseRouter.get('/:id/lectures/:lectureId', AuthMiddleware, async (req: Request, res: Response) => {
+courseRouter.get('/:id/lecture/:lectureId', AuthMiddleware, async (req: Request, res: Response) => {
     try{
         const courseId = req.params.id;
         const lectureId = req.params.lectureId;
@@ -443,13 +497,13 @@ courseRouter.get('/:id/lectures/:lectureId', AuthMiddleware, async (req: Request
     }
 })
 
-courseRouter.post('/:id/lectures/:lectureId', AuthMiddleware, async (req: Request, res: Response) => {
+courseRouter.put('/:id/lecture/:lectureId', AuthMiddleware, async (req: Request, res: Response) => {
     try{
         const userId = req.userId;
         const courseId = req.params.id;
         const lectureId = req.params.lectureId;
         
-        const {  success, error, data} = lectureCreateSchema.safeParse({...req.body, courseId, lectureId});
+        const {  success, error, data} = lectureUpdateSchema.safeParse({...req.body, courseId, lectureId});
     
         if(!success) {
             res.status(401).json({
@@ -459,8 +513,41 @@ courseRouter.post('/:id/lectures/:lectureId', AuthMiddleware, async (req: Reques
             return;
         }
 
-        const {title, description, preview, videoUrl, publicId} = data;
-        
+        const {title, description, preview, video} = data;
+
+        console.log(data);
+
+        if(video?.name && video?.type){
+            const {publicId, url} = await GetLectureUploadUrl(courseId, lectureId, video.name, video.type);
+            
+            console.log(publicId, url);
+
+            const lecture = await db.lecture.update({
+                where: {
+                    id: lectureId,
+                    course: {
+                        id: courseId,
+                        instructorId: userId
+                    },
+                },
+                data: {
+                    title,
+                    description,
+                    preview,
+                    videoUrl: publicId,
+                    courseId
+                }
+            });
+            
+            res.json({
+                message: 'Lecture Updated Succesfully',
+                lecture,
+                presignedUrl: url,
+            });
+
+            return;
+        }
+
         const lecture = await db.lecture.update({
             where: {
                 id: lectureId,
@@ -473,8 +560,6 @@ courseRouter.post('/:id/lectures/:lectureId', AuthMiddleware, async (req: Reques
                 title,
                 description,
                 preview,
-                videoUrl,
-                publicId,
                 courseId
             }
         });
@@ -485,12 +570,12 @@ courseRouter.post('/:id/lectures/:lectureId', AuthMiddleware, async (req: Reques
         });
     } catch (err) {
         res.status(403).json({
-            message: 'Lecture can not be Updated',
+            message: (err as Error).message || 'Lecture can not be Updated',
         })
     }
 })
 
-courseRouter.delete('/:id/lectures/:lectureId', AuthMiddleware, async (req: Request, res: Response) => {
+courseRouter.delete('/:id/lecture/:lectureId', AuthMiddleware, async (req: Request, res: Response) => {
     try{
         const userId = req.userId;
         const courseId = req.params.id;

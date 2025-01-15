@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { ErrorMessage } from '../components/ErrorMessage';
+import { useAuth } from '@/contexts/AuthContext';
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,75 +14,70 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useToast } from '@/hooks/use-toast';
 
 enum RoleType {
-  USER = 'user',
-  ADMIN = 'admin'
+  INSTRUCTOR = 'INSTRUCTOR',
+  STUDENT = 'STUDENT'
 }
 
-export default function Register() {
-  const [name, setName] = useState("");
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<RoleType>(RoleType.USER);
-  const [error, setError] = useState<string>("");
-  const { user, signup, loading } = useAuth();
+  const [role, setRole] = useState<RoleType>(RoleType.STUDENT);
+
+  const {user, login, loading } = useAuth();
+  const {toast} = useToast();
   const navigate = useNavigate();
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     try {
-      await signup(name, email, password, role);
-      navigate(role === 'admin' ? '/admin' : "/");
+      await login({email, password, role});
+      toast({
+        title: 'Logged In Successfully',
+        variant: "success"
+      })
+      navigate(role === 'INSTRUCTOR' ? '/instructor' : "/");
     } catch (err) {
-      setError((err as Error).message);
+      toast({
+        title: 'Could Not Login',
+        description: (err as Error).message,
+        variant: "destructive"
+      })
     }
   };
 
   const handleTabChange = (value: string) => {
-    setRole(value === "user" ? RoleType.USER : RoleType.ADMIN);
-    setName("");
+    setRole(value === "STUDENT" ? RoleType.STUDENT : RoleType.INSTRUCTOR);
     setEmail("");
     setPassword("");
-    setError("");
   };
 
-    useEffect(() => {
-      if (user) {
-        navigate(role === 'admin' ? '/admin' : "/");
-      }
-    }, [user]);
+  useEffect(() => {
+    if (user) {
+      navigate(-1);
+    }
+  }, [user]);
 
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
       <Card className="w-[400px]">
         <CardHeader className="text-center">
-          <CardTitle>Welcome, Register here</CardTitle>
+          <CardTitle>Welcome back</CardTitle>
           <CardDescription>
             Choose your account type to continue
           </CardDescription>
-          <ErrorMessage message={error} />
         </CardHeader>
         <CardContent>
           <Tabs value={role} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value={RoleType.USER}>User</TabsTrigger>
-              <TabsTrigger value={RoleType.ADMIN}>Admin</TabsTrigger>
+              <TabsTrigger value={RoleType.STUDENT}>Student</TabsTrigger>
+              <TabsTrigger value={RoleType.INSTRUCTOR}>Instructor</TabsTrigger>
             </TabsList>
-            <TabsContent value="user">
+            <TabsContent value={RoleType.STUDENT}>
               <form onSubmit={onSubmit}>
                 <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                      id="name"
-                      type="text"
-                      value={name}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value )}
-                      placeholder="Don John"
-                    />
-                  </div>
                   <div className="grid gap-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
@@ -106,24 +100,14 @@ export default function Register() {
                     />
                   </div>
                   <Button type="submit" disabled={loading}>
-                    {loading ? "Loading..." : "Sign Up"}
+                    {loading ? "Loading..." : "Sign In"}
                   </Button>
                 </div>
               </form>
             </TabsContent>
-            <TabsContent value="admin">
+            <TabsContent value={RoleType.INSTRUCTOR}>
               <form onSubmit={onSubmit}>
                 <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="admin-name">Name</Label>
-                    <Input
-                      id="admin-name"
-                      type="text"
-                      value={name}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value )}
-                      placeholder="Don John"
-                    />
-                  </div>
                   <div className="grid gap-2">
                     <Label htmlFor="admin-email">Email</Label>
                     <Input
@@ -146,16 +130,16 @@ export default function Register() {
                     />
                   </div>
                   <Button type="submit" disabled={loading}>
-                    {loading ? "Loading..." : "Sign Up"}
+                    {loading ? "Loading..." : "Sign In"}
                   </Button>
                 </div>
               </form>
             </TabsContent>
           </Tabs>
           <div className="mt-4 text-center text-sm">
-            Already have an account?{" "}
-            <Link to="/login" className="underline">
-              Login
+            Don&apos;t have an account?{" "}
+            <Link to="/register" className="underline">
+              Sign up
             </Link>
           </div>
         </CardContent>

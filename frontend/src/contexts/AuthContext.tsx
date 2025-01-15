@@ -1,20 +1,19 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import API from '../api/axios';
 import { User } from '../types';
-import { AxiosError } from 'axios';
+import { LoginFormData, RegisterFormData } from '@/types/auth-form';
+import { LoginRequest, LogoutRequest, ProfileRequest, SignupRequest } from '@/services';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface AuthContextType {
   user: User | null;
-  isAdmin: boolean;
   loading: boolean;
-  login: (email: string, password: string, role: "user" | "admin") => Promise<void>;
-  signup: (name: string, email: string, password: string, role: "user" | "admin") => Promise<void>;
+  signup: (registerData: RegisterFormData) => Promise<void>;
+  login: (loginData: LoginFormData) => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  isAdmin: false,
   loading: false,
   login: async () => {},
   signup: async () => {},
@@ -29,114 +28,69 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await API.get('/user/profile');
-        setUser(response.data.user);
+        setLoading(true);
+        const data = await ProfileRequest();
+        setUser(data.user);
+        setLoading(false);
       } catch (error) {
         logout();
       }
     };
     
-    const fetchAdmin = async () => {
-      try {
-        const response = await API.get('/admin/profile');
-        setUser(response.data.user);
-        setIsAdmin(true);
-      } catch (error) {
-        logout();
-      }
-    };
-
-    const token = localStorage.getItem('token');
-    const isAdminToken = localStorage.getItem('isAdmin');
-    if (token && isAdminToken) {
-      fetchAdmin();
-    } else if (token) {
-      fetchUser();
-    }
+    fetchUser();
 
   }, []);
 
-  const signup = async (name: string, email: string, password: string, role: "user" | "admin") => {
+  const signup = async (registerData: RegisterFormData) => {
     try {
       setLoading(true);
-      if (role === "admin") {
-        const response = await API.post('/admin/signup', { name, email, password });
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('isAdmin', 'true');
-        setUser(response.data.user);
-        setIsAdmin(true);
-      } else {
-        const response = await API.post('/user/signup', { name, email, password });
-        localStorage.setItem('token', response.data.token);
-        setUser(response.data.user);
-      }
-    } catch (error) {
-      const errData = (error as AxiosError).response?.data as { message: string };
-      console.error('Error logging in:', errData);
+      const data = await SignupRequest(registerData);
+      sessionStorage.setItem('token', data.token);
+      setUser(data.user);
+    }
+    catch (error) {
+      console.log(error);
       setLoading(false);
-      throw errData || {message: 'Login failed'};
+      throw error;
     }
     setLoading(false);
   }
 
-  const login = async (email: string, password: string, role: "user" | "admin") => {
+  const login = async (loginData: LoginFormData) => {
     try {
       setLoading(true);
-      if(role === "admin") {
-        const response = await API.post('/admin/signin', { email, password });
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('isAdmin', 'true');
-        setUser(response.data.user);
-        setIsAdmin(true);
-      } else {
-        const response = await API.post('/user/signin', { email, password });
-        localStorage.setItem('token', response.data.token);
-        setUser(response.data.user);
-      }
+      const data = await LoginRequest(loginData);
+      sessionStorage.setItem('token', data.token);
+      setUser(data.user);
     } catch (error) {
-      const errData = (error as AxiosError).response?.data as { message: string };
-      console.error('Error logging in:', errData);
+      console.log(error);
       setLoading(false);
-      throw errData || {message: 'Login failed'};
+      throw error;
     }
     setLoading(false);
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('isAdmin');
-    setUser(null);
-    setIsAdmin(false);
+  const logout = async () => {
+    try {
+      setLoading(true);
+      sessionStorage.removeItem('token');
+      setUser(null);
+      const data = await LogoutRequest();
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+      throw error;
+    }
     setLoading(false);
   }
 
-  // const checkUserRole = async (userId?: string) => {
-  //   if (!userId) {
-  //     setIsAdmin(false);
-  //     return;
-  //   }
-
-  //   const { data, error } = await supabase
-  //     .from('profiles')
-  //     .select('role')
-  //     .eq('id', userId)
-  //     .single();
-
-  //   if (!error && data) {
-  //     setIsAdmin(data.role === 'admin');
-  //   }
-  //   setLoading(false);
-  // };
-
   const value = {
     user,
-    isAdmin,
     loading,
     login,
     signup,
@@ -145,8 +99,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {/* {!loading && children} */}
-      {children}
+      {loading ? (
+        <div className="h-screen flex flex-col justify-center items-center space-y-3">
+        <Skeleton className="h-[125px] w-[250px] rounded-xl" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-[250px]" />
+          <Skeleton className="h-4 w-[200px]" />
+        </div>
+      </div>
+      ) : children}
     </AuthContext.Provider>
   );
 };

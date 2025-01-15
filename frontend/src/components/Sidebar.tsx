@@ -1,70 +1,27 @@
-"use client"
-
 import {Link, useLocation} from "react-router-dom";
-// import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { BookOpen, GraduationCap, Home, LayoutDashboard, MessageSquare, Settings } from 'lucide-react'
 
-const userNavItems = [
-  {
-    title: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Courses",
-    href: "/courses",
-    icon: BookOpen,
-  },
-  {
-    title: "Messages",
-    href: "/messages",
-    icon: MessageSquare,
-  },
-  {
-    title: "Settings",
-    href: "/settings",
-    icon: Settings,
-  },
-]
-
-const adminNavItems = [
-  {
-    title: "Dashboard",
-    href: "/admin",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Courses",
-    href: "/admin/courses",
-    icon: BookOpen,
-  },
-  {
-    title: "Lessons",
-    href: "/admin/lessons",
-    icon: GraduationCap,
-  },
-]
-
-export function Sidebar() {
+interface SidebarItem {
+  title: string;
+  href: string;
+  icon: any;
+}
+export function Sidebar({items} : {items: SidebarItem[]}) {
   const location = useLocation();
-//   const pathname = usePathname()
-//   const isAdmin = pathname.startsWith("/admin")
-//   const items = isAdmin ? adminNavItems : userNavItems
 
   return (
     <div className="flex h-screen w-[64px] flex-col justify-between border-r bg-gray-100/40 lg:w-[240px]">
       <div className="flex flex-col">
         <div className="flex h-[64px] items-center px-6">
-          <Link to="/" className="flex items-center space-x-2">
-            <Home className="h-6 w-6" />
+          {/* <Link to="/" className="flex items-center space-x-2"> */}
+            {/* <Home className="h-6 w-6" /> */}
             <span className="hidden font-bold lg:inline-block">
               Course Platform
             </span>
-          </Link>
+          {/* </Link> */}
         </div>
         <nav className="grid gap-1 p-2">
-          {userNavItems.map((item, index) => (
+          {items.map((item, index) => (
             <Link
               key={index}
               to={item.href}

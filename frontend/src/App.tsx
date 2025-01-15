@@ -1,46 +1,46 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { CoursesProvider } from './contexts/CoursesContext';
+import { Routes, Route } from 'react-router-dom';
+import { Toaster } from './components/ui/toaster';
 import { PrivateRoute } from './components/PrivateRoute';
 import MainLayout from './layout/MainLayout';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import UserDashboard from './pages/UserDashboard';
-import AdminDashboard from './pages/AdminDashboard';
-import Homepage from './pages/homepage';
-import Courses from './pages/Courses';
+import NotFound from './pages/not-found';
+
+import Login from './pages/auth/login';
+import Register from './pages/auth/register';
+
+import UserDashboard from './pages/student/dashboard';
+import UserProfileSettings from './pages/student/profileSettings';
+
+import InstructorDashboard from './pages/instructor';
+import InstructorCourses from './pages/instructor/courses';
+import CreateCoursePage from './pages/instructor/create-course';
+
 import Course from './pages/Course';
-import SettingsPage from './pages/Settings';
-import { Toaster } from './components/ui/toaster';
 
 function App() {
   return (
-    <AuthProvider>
-      <CoursesProvider>
-        <Router>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
-              <Route index element={<Homepage />} />
-              <Route path='dashboard' element={<UserDashboard />} />
-              <Route path='courses' element={<Courses />} />
-              <Route path='courses/:id' element={<Course />} />
-              <Route path='settings' element={<SettingsPage />} />
-            </Route>
-            <Route 
-              path="/admin" 
-              element={
-                <PrivateRoute requireAdmin>
-                  <AdminDashboard />
-                </PrivateRoute>
-              } 
-              />
-          </Routes>
-        </Router>
-        <Toaster />
-      </CoursesProvider>
-    </AuthProvider>
+    <>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* Student Routes */}
+        <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
+          <Route index element={<UserDashboard />} />
+          {/* <Route path='courses' element={<Courses />} /> */}
+          <Route path='courses/:id' element={<Course />} />
+          <Route path='settings' element={<UserProfileSettings />} />
+        </Route>
+          {/* Instructor Routes */}
+        <Route path="/instructor" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
+          <Route index element={<InstructorDashboard />} />
+          <Route path='courses' element={<InstructorCourses />} />
+          <Route path='create-course' element={<CreateCoursePage />} />
+          <Route path='lessions' element={<h1>Lessions</h1>} />
+        </Route>
+        <Route path='*' element={<NotFound />} />
+      </Routes>
+      <Toaster />
+    </>        
   );
 }
 

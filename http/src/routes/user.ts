@@ -2,14 +2,14 @@ import { Router, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import db from "../db";
-import {userSchema} from '../@types/zod.types';
+import {userLoginSchema, userSignupSchema} from '../@types/zod.types';
 import { AuthMiddleware } from "../middleware/auth";
 
 const userRouter = Router();
 
 userRouter.post("/signup", async (req: Request, res: Response) => {
     try {
-        const {  success, error, data} = userSchema.safeParse(req.body);
+        const {  success, error, data} = userSignupSchema.safeParse(req.body);
     
         if(!success) {
             res.status(401).json({
@@ -56,6 +56,7 @@ userRouter.post("/signup", async (req: Request, res: Response) => {
             sameSite: true,
         }).status(201).json({
             message: "User created successfully",
+            token,
             user: {
                 id: user.id,
                 name: user.name,
@@ -65,6 +66,7 @@ userRouter.post("/signup", async (req: Request, res: Response) => {
         });
 
     } catch (error) {
+        console.log(error);
         res.status(404).json({
             message: "User can not be created"
         });
@@ -74,7 +76,7 @@ userRouter.post("/signup", async (req: Request, res: Response) => {
 userRouter.post("/signin", async (req: Request, res: Response) => {
     
     try {
-        const {  success, error, data} = userSchema.safeParse(req.body);
+        const {  success, error, data} = userLoginSchema.safeParse(req.body);
   
         if(!success) {
             res.status(401).json({
@@ -84,7 +86,7 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
             return;
         }
 
-        const {email, password} = data;
+        const {email, password, role} = data;
 
         const user = await db.user.findFirst({
             where: {
@@ -104,6 +106,10 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
             return;
         }
 
+        if(user.role !== role) {
+            res.status(401).json({ message: "Role is not matching with the credentials provided"});
+        }
+
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || "", {
             expiresIn: "1d",
         });
@@ -114,6 +120,7 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
             sameSite: true
         }).json({
             message: 'User logged in successfully',
+            token,
             user: {
                 id: user.id,
                 name: user.name,
@@ -121,9 +128,9 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
                 role: user.role
             }
         });
-
     } catch (error) {
         res.status(500).json({ message: "User Can not be logged in" });
+        console.log(error);
   }
 });
 

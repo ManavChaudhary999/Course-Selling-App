@@ -1,7 +1,7 @@
 export interface LoginFormData {
   email: string;
   password: string;
-  role: 'user' | 'admin';
+  role: 'INSTRUCTOR' | 'STUDENT';
 }
 
 export interface RegisterFormData extends LoginFormData {
