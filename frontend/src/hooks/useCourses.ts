@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 // import { supabase } from '@/lib/supabase';
-import { Course, Enrollment } from '@/types';
+import { InstructorCourseType, Enrollment } from '@/types';
 
 export const useCourses = (userId?: number) => {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<InstructorCourseType[]>([]);
   const [enrolledCourses, setEnrolledCourses] = useState<Enrollment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');

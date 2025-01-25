@@ -23,5 +23,5 @@ export interface LectureFormData {
     title: string,
     description?: string,
     video: File,
-    freePreview: boolean
+    preview: boolean
 }

@@ -1,4 +1,3 @@
-import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { Delete, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,56 +10,65 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-// import {
-//   courseCurriculumInitialFormData,
-//   courseLandingInitialFormData,
-// } from "@/config";
-// import { InstructorContext } from "@/context/instructor-context";
+import {
+  courseCurriculumInitialFormData,
+  courseLandingInitialFormData,
+} from "@/config";
+import { useInstructor } from "@/contexts/InstructorContext";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useEffect } from "react";
+import { fetchInstructorCourseListRequest } from "@/services";
 
-function InstructorCourses({ listOfCourses = null }) {
+function InstructorCourses() {
   const navigate = useNavigate();
-//   const {
-//     setCurrentEditedCourseId,
-//     setCourseLandingFormData,
-//     setCourseCurriculumFormData,
-//   } = useContext(InstructorContext);
+  const { toast } = useToast();
+  const {
+    instructorCoursesList,
+    setInstructorCoursesList,
+    loading,
+    setLoading,
+    setCurrentEditedCourseId,
+    setCourseLandingFormData,
+    setCourseCurriculumFormData,
+  } = useInstructor();
 
-const listOfCourses2 = [
-    {
-        id: "1",
-        title: "React",
-        description:
-            "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quae, voluptatem.",
-        pricing: 100,
-        students:[
-            {
-            studentName: "John Doe",
-            studentEmail: "2VYlG@example.com",
-            },
-            {
-            studentName: "John Doe",
-            studentEmail: "2VYlG@example.com",
-            },
-        ],
-    },
-    {
-        id: "2",
-        title: "Next",
-        description:
-            "Lorem ipsum dolor sit amet consectetur adipisicing elit. Quae, voluptatem.",
-        pricing: 100,
-        students:[
-            {
-            studentName: "John Doe",
-            studentEmail: "2VYlG@example.com",
-            },
-            {
-            studentName: "John Doe",
-            studentEmail: "2VYlG@example.com",
-            },
-        ],
-    },
-]
+  const fetchCourses = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchInstructorCourseListRequest();
+        setInstructorCoursesList(data.courses);
+        console.log(data.courses);
+      } catch (error) {
+        setLoading(false);
+        throw error;
+      }
+      setLoading(false);
+  }
+  
+  useEffect(() => {
+    if(instructorCoursesList?.length > 0) return;
+
+    try {
+      fetchCourses();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: (error as Error).message,
+        variant: "destructive"
+      })
+    }
+  }, []);
+
+  if(loading) {
+    <div className="h-screen flex flex-col justify-center items-center space-y-3">
+      <Skeleton className="h-[125px] w-[250px] rounded-xl" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[250px]" />
+        <Skeleton className="h-4 w-[200px]" />
+      </div>
+    </div>
+  }
 
   return (
     <Card>
@@ -68,9 +76,9 @@ const listOfCourses2 = [
         <CardTitle className="text-3xl font-extrabold">All Courses</CardTitle>
         <Button
           onClick={() => {
-        //     setCurrentEditedCourseId(null);
-        //     setCourseLandingFormData(courseLandingInitialFormData);
-        //     setCourseCurriculumFormData(courseCurriculumInitialFormData);
+            setCurrentEditedCourseId(null);
+            setCourseLandingFormData(courseLandingInitialFormData);
+            setCourseCurriculumFormData(courseCurriculumInitialFormData);
             navigate("/instructor/create-course");
           }}
           className="p-6"
@@ -90,29 +98,29 @@ const listOfCourses2 = [
               </TableRow>
             </TableHeader>
             <TableBody>
-              {listOfCourses2 && listOfCourses2.length > 0
-                ? listOfCourses2.map((course) => (
+              {instructorCoursesList?.length > 0
+                ? instructorCoursesList.map((course) => (
                     <TableRow>
                       <TableCell className="font-medium">
-                        {course?.title}
+                        {course.title}
                       </TableCell>
-                      <TableCell>{course?.students?.length}</TableCell>
+                      <TableCell>{course.enrollments?.length}</TableCell>
                       <TableCell>
-                        ${course?.students?.length * course?.pricing}
+                        ${course.enrollments?.length * course.price}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
                           onClick={() => {
-                            navigate(`/instructor/edit-course/${course?.id}`);
+                            navigate(`/instructor/edit-course/${course.id}`);
                           }}
                           variant="ghost"
                           size="sm"
                         >
                           <Edit className="h-6 w-6" />
                         </Button>
-                        <Button variant="ghost" size="sm">
+                        {/* <Button variant="ghost" size="sm">
                           <Delete className="h-6 w-6" />
-                        </Button>
+                        </Button> */}
                       </TableCell>
                     </TableRow>
                   ))

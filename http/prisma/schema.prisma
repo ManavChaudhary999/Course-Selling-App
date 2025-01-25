@@ -13,6 +13,7 @@ model User {
   email       String        @unique
   password    String
   role        Role          @default(STUDENT)
+  profilePublicId  String?
   profileUrl  String?
   progress    CourseProgress[]
   course      Course[]
@@ -32,6 +33,7 @@ model Course {
   title         String
   description   String?
   price         Float?
+  imagePublicId String?
   imageUrl      String?
   level         Level
   isPublished   Boolean         @default(false)

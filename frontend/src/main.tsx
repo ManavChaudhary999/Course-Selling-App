@@ -13,9 +13,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <AuthProvider>
         <InstructorProvider>
-          <CoursesProvider>
+          {/* <CoursesProvider> */}
             <App />
-          </CoursesProvider>
+          {/* </CoursesProvider> */}
         </InstructorProvider>
       </AuthProvider>
     </BrowserRouter>

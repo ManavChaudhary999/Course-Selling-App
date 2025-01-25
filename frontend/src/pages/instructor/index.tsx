@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -7,55 +8,97 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { DollarSign, Users } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { IndianRupee, Users } from "lucide-react";
+import { useInstructor } from "@/contexts/InstructorContext";
+import { useToast } from "@/hooks/use-toast";
+import { fetchInstructorCourseListRequest } from "@/services";
 
-function InstructorDashboard({ listOfCourses = null }) {
-  function calculateTotalStudentsAndProfit() {
-  //   const { totalStudents, totalProfit, studentList } = listOfCourses.reduce(
-  //     (acc, course) => {
-  //       const studentCount = course.students.length;
-  //       acc.totalStudents += studentCount;
-  //       acc.totalProfit += course.pricing * studentCount;
+function InstructorDashboard() {
+  const { toast } = useToast();
+  const {instructorCoursesList, setInstructorCoursesList, loading, setLoading} = useInstructor();
 
-  //       course.students.forEach((student) => {
-  //         acc.studentList.push({
-  //           courseTitle: course.title,
-  //           studentName: student.studentName,
-  //           studentEmail: student.studentEmail,
-  //         });
-  //       });
-
-  //       return acc;
-  //     },
-  //     {
-  //       totalStudents: 0,
-  //       totalProfit: 0,
-  //       studentList: [],
-  //     }
-  //   );
-
-  //   return {
-  //     totalProfit,
-  //     totalStudents,
-  //     studentList,
-  //   };
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const data = await fetchInstructorCourseListRequest();
+      setInstructorCoursesList(data.courses);
+      console.log(data.courses);
+    } catch (error) {
+      setLoading(false);
+      throw error;
+    }
+    setLoading(false);
   }
 
-  // console.log(calculateTotalStudentsAndProfit());
+  useEffect(() => {
+    try {
+      fetchCourses();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: (error as Error).message,
+        variant: "destructive"
+      })
+    }
+  }, []);
+
+  function calculateTotalStudentsAndProfit() {
+    const { totalStudents, totalProfit, studentList } = instructorCoursesList.reduce(
+      (acc, course) => {
+        const studentCount = course.enrollments.length;
+        acc.totalStudents += studentCount;
+        acc.totalProfit += course.price * studentCount;
+
+        course.enrollments.forEach(({user: student}) => {
+          acc.studentList.push({
+            courseTitle: course.title,
+            studentId: student.id,
+            studentName: student.name,
+            studentEmail: student.email,
+          });
+        });
+
+        return acc;
+      },
+      {
+        totalStudents: 0,
+        totalProfit: 0,
+        studentList: [] as {courseTitle: string, studentId: string, studentName: string, studentEmail: string}[],
+      }
+    );
+
+    return {
+      totalProfit,
+      totalStudents,
+      studentList,
+    };
+  }
+
+  const {studentList, totalProfit, totalStudents} = calculateTotalStudentsAndProfit();
 
   const config = [
     {
       icon: Users,
       label: "Total Students",
-      // value: calculateTotalStudentsAndProfit().totalStudents,
-      value: 20,
+      value: totalStudents,
     },
     {
-      icon: DollarSign,
+      icon: IndianRupee,
       label: "Total Revenue",
-      value: 200,
+      value: totalProfit,
     },
   ];
+
+  if(loading) {
+    <div className="h-screen flex flex-col justify-center items-center space-y-3">
+      <Skeleton className="h-[125px] w-[250px] rounded-xl" />
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-[250px]" />
+        <Skeleton className="h-4 w-[200px]" />
+      </div>
+    </div>
+  }
 
   return (
     <div>
@@ -89,18 +132,22 @@ function InstructorDashboard({ listOfCourses = null }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {/* {calculateTotalStudentsAndProfit().studentList.map( */}
-                {[{courseTitle: "avc", studentName: "asd", studentEmail: "ads"}, {courseTitle: "avc", studentName: "asd", studentEmail: "ads"}].map(
-                  (studentItem, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-medium">
-                        {studentItem.courseTitle}
-                      </TableCell>
-                      <TableCell>{studentItem.studentName}</TableCell>
-                      <TableCell>{studentItem.studentEmail}</TableCell>
-                    </TableRow>
-                  )
-                )}
+              {
+                studentList.length <= 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center" className="h-24 text-lg">No students found</TableCell>
+                  </TableRow>
+                ) : (studentList.map((studentItem) => (
+                      <TableRow key={studentItem.studentId}>
+                        <TableCell className="font-medium">
+                          {studentItem.courseTitle}
+                        </TableCell>
+                        <TableCell>{studentItem.studentName}</TableCell>
+                        <TableCell>{studentItem.studentEmail}</TableCell>
+                      </TableRow>
+                    ))
+                )
+              }
               </TableBody>
             </Table>
           </div>

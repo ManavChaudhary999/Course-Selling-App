@@ -1,6 +1,3 @@
-import { useRef } from "react";
-import { Upload } from "lucide-react";
-import MediaProgressBar from "@/components/MediaProgressBar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,195 +6,129 @@ import { Switch } from "@/components/ui/switch";
 import VideoPlayer from "@/components/VideoPlayer";
 import { courseCurriculumInitialFormData } from "@/config";
 import { useInstructor } from "@/contexts/InstructorContext";
-// import {
-//   mediaBulkUploadService,
-//   mediaDeleteService,
-//   mediaUploadService,
-// } from "@/services";
+import { useToast } from "@/hooks/use-toast";
+import { deleteLectureRequest } from "@/services";
 
-function CourseCurriculum() {
+function CourseCurriculum({courseId}: {courseId: string}) {
   const {
     courseCurriculumFormData,
     setCourseCurriculumFormData,
-    // mediaUploadProgress,
-    // setMediaUploadProgress,
-    // mediaUploadProgressPercentage,
-    // setMediaUploadProgressPercentage,
   } = useInstructor();
 
-  const bulkUploadInputRef = useRef(null);
+  const { toast } = useToast();
 
-function handleNewLecture() {
-  setCourseCurriculumFormData([
-    ...courseCurriculumFormData,
-    {
-      ...courseCurriculumInitialFormData[0],
-    },
-  ]);
-}
+  function handleNewLecture() {
+    setCourseCurriculumFormData([
+      ...courseCurriculumFormData,
+      {
+        ...courseCurriculumInitialFormData[0],
+      },
+    ]);
+  }
 
-function handleCourseTitleChange(event: React.ChangeEvent<HTMLInputElement>, currentIndex: number) {
-  let cpyCourseCurriculumFormData = [...courseCurriculumFormData];
-  cpyCourseCurriculumFormData[currentIndex] = {
-    ...cpyCourseCurriculumFormData[currentIndex],
-    title: event.target.value,
-  };
-
-  setCourseCurriculumFormData(cpyCourseCurriculumFormData);
-}
-
-function handleCourseDescriptionChange(event: React.ChangeEvent<HTMLInputElement>, currentIndex: number) {
-  let cpyCourseCurriculumFormData = [...courseCurriculumFormData];
-  cpyCourseCurriculumFormData[currentIndex] = {
-    ...cpyCourseCurriculumFormData[currentIndex],
-    description: event.target.value,
-  };
-
-  setCourseCurriculumFormData(cpyCourseCurriculumFormData);
-}
-
-function handleFreePreviewChange(currentValue: boolean, currentIndex: number) {
-  console.log(currentValue);
-  let cpyCourseCurriculumFormData = [...courseCurriculumFormData];
-  cpyCourseCurriculumFormData[currentIndex] = {
-    ...cpyCourseCurriculumFormData[currentIndex],
-    freePreview: currentValue,
-  };
-
-  setCourseCurriculumFormData(cpyCourseCurriculumFormData);
-}
-
-async function handleSingleLectureUpload(event: React.ChangeEvent<HTMLInputElement>, currentIndex: number) {
-  const selectedFile = event.target.files?.[0] || null;
-
-  if (selectedFile) {
-    // Creating a Preview Url
-    const videoUrl = URL.createObjectURL(selectedFile);
-    const cpyCourseCurriculumFormData = [...courseCurriculumFormData];
-
+  function handleCourseTitleChange(event: React.ChangeEvent<HTMLInputElement>, currentIndex: number) {
+    let cpyCourseCurriculumFormData = [...courseCurriculumFormData];
     cpyCourseCurriculumFormData[currentIndex] = {
       ...cpyCourseCurriculumFormData[currentIndex],
-      videoUrl,
-      video: selectedFile,
-    }
+      title: event.target.value,
+    };
 
     setCourseCurriculumFormData(cpyCourseCurriculumFormData);
   }
-}
 
-async function handleReplaceVideo(currentIndex: number) {
-  let cpyCourseCurriculumFormData = [...courseCurriculumFormData];
+  function handleCourseDescriptionChange(event: React.ChangeEvent<HTMLInputElement>, currentIndex: number) {
+    let cpyCourseCurriculumFormData = [...courseCurriculumFormData];
+    cpyCourseCurriculumFormData[currentIndex] = {
+      ...cpyCourseCurriculumFormData[currentIndex],
+      description: event.target.value,
+    };
+
+    setCourseCurriculumFormData(cpyCourseCurriculumFormData);
+  }
+
+  function handleFreePreviewChange(currentValue: boolean, currentIndex: number) {
+    let cpyCourseCurriculumFormData = [...courseCurriculumFormData];
+    cpyCourseCurriculumFormData[currentIndex] = {
+      ...cpyCourseCurriculumFormData[currentIndex],
+      preview: currentValue,
+    };
+
+    setCourseCurriculumFormData(cpyCourseCurriculumFormData);
+  }
+
+  async function handleSingleLectureUpload(event: React.ChangeEvent<HTMLInputElement>, currentIndex: number) {
+    const selectedFile = event.target.files?.[0] || null;
+
+    if (selectedFile) {
+      // Creating a Preview Url
+      const videoUrl = URL.createObjectURL(selectedFile);
+      const cpyCourseCurriculumFormData = [...courseCurriculumFormData];
+
+      cpyCourseCurriculumFormData[currentIndex] = {
+        ...cpyCourseCurriculumFormData[currentIndex],
+        videoUrl,
+        video: selectedFile,
+      }
+
+      setCourseCurriculumFormData(cpyCourseCurriculumFormData);
+    }
+  }
+
+  // async function handleReplaceVideo(currentIndex: number) {
+  //   let cpyCourseCurriculumFormData = [...courseCurriculumFormData];
+
+  //   const getCurrentVideoPublicId = cpyCourseCurriculumFormData[currentIndex].publicId;
+
+  //   // const deleteCurrentMediaResponse = await mediaDeleteService(
+  //   //   getCurrentVideoPublicId
+  //   // );
+    
+  //   cpyCourseCurriculumFormData[currentIndex] = {
+  //     ...cpyCourseCurriculumFormData[currentIndex],
+  //     videoUrl: "",
+  //     video: null,
+  //   };
+
+  //   setCourseCurriculumFormData(cpyCourseCurriculumFormData);
+  // }
   
-  cpyCourseCurriculumFormData[currentIndex] = {
-    ...cpyCourseCurriculumFormData[currentIndex],
-    videoUrl: "",
-    video: null,
-  };
+  async function handleDeleteLecture(currentIndex: number) {
+    try {
+      let cpyCourseCurriculumFormData = [...courseCurriculumFormData];
 
-  setCourseCurriculumFormData(cpyCourseCurriculumFormData);
-}
+      if(cpyCourseCurriculumFormData[currentIndex].id) {
+        await deleteLectureRequest(courseId, cpyCourseCurriculumFormData[currentIndex].id);
+      }
 
-function isCourseCurriculumFormDataValid() {
-  return courseCurriculumFormData.every((item: any) => {
-    return (
-      item &&
-      typeof item === "object" &&
-      item.title.trim() !== "" &&
-      item.videoUrl.trim() !== "" &&
-      item.video !== null
-    );
-  });
-}
+      cpyCourseCurriculumFormData = cpyCourseCurriculumFormData.filter(
+        (_, index) => index !== currentIndex
+      );
+  
+      setCourseCurriculumFormData(cpyCourseCurriculumFormData);
+    } catch (err) {
+      toast({
+        title: 'Could Not Delete Course',
+        description: (err as Error).message,
+        variant: "destructive"
+      })
+    }
+  }
 
-  // function handleOpenBulkUploadDialog() {
-  //   bulkUploadInputRef.current?.click();
-  // }
-
-  // function areAllCourseCurriculumFormDataObjectsEmpty(arr) {
-  //   return arr.every((obj) => {
-  //     return Object.entries(obj).every(([key, value]) => {
-  //       if (typeof value === "boolean") {
-  //         return true;
-  //       }
-  //       return value === "";
-  //     });
-  //   });
-  // }
-
-  // async function handleMediaBulkUpload(event) {
-  //   const selectedFiles = Array.from(event.target.files);
-  //   const bulkFormData = new FormData();
-
-  //   selectedFiles.forEach((fileItem) => bulkFormData.append("files", fileItem));
-
-  //   try {
-  //     setMediaUploadProgress(true);
-  //     const response = await mediaBulkUploadService(
-  //       bulkFormData,
-  //       setMediaUploadProgressPercentage
-  //     );
-
-  //     console.log(response, "bulk");
-  //     if (response?.success) {
-  //       let cpyCourseCurriculumFormdata =
-  //         areAllCourseCurriculumFormDataObjectsEmpty(courseCurriculumFormData)
-  //           ? []
-  //           : [...courseCurriculumFormData];
-
-  //       cpyCourseCurriculumFormdata = [
-  //         ...cpyCourseCurriculumFormdata,
-  //         ...response?.data.map((item, index) => ({
-  //           videoUrl: item?.url,
-  //           public_id: item?.public_id,
-  //           title: `Lecture ${
-  //             cpyCourseCurriculumFormdata.length + (index + 1)
-  //           }`,
-  //           freePreview: false,
-  //         })),
-  //       ];
-  //       setCourseCurriculumFormData(cpyCourseCurriculumFormdata);
-  //       setMediaUploadProgress(false);
-  //     }
-  //   } catch (e) {
-  //     console.log(e);
-  //   }
-  // }
-
-async function handleDeleteLecture(currentIndex: number) {
-  let cpyCourseCurriculumFormData = [...courseCurriculumFormData];
-
-  cpyCourseCurriculumFormData = cpyCourseCurriculumFormData.filter(
-    (_, index) => index !== currentIndex
-  );
-
-  setCourseCurriculumFormData(cpyCourseCurriculumFormData);
-}
+  function isCourseCurriculumFormDataValid() {
+    return courseCurriculumFormData.every((item: any) => {
+      return (
+        item &&
+        typeof item === "object" &&
+        item.title.trim() !== "" &&
+        item.videoUrl.trim() !== ""
+      );
+    });
+  }
 
   return (
     <Card>
       <CardHeader className="flex flex-row justify-between">
         <CardTitle>Create Course Curriculum</CardTitle>
-        <div>
-          <Input
-            type="file"
-            ref={bulkUploadInputRef}
-            accept="video/*"
-            multiple
-            className="hidden"
-            id="bulk-media-upload"
-            // onChange={handleMediaBulkUpload}
-          />
-          <Button
-            // as="label"
-            // htmlFor="bulk-media-upload"
-            variant="outline"
-            className="cursor-pointer"
-            // onClick={handleOpenBulkUploadDialog}
-          >
-            <Upload className="w-4 h-5 mr-2" />
-            Bulk Upload
-          </Button>
-        </div>
       </CardHeader>
       <CardContent>
         <Button
@@ -206,12 +137,6 @@ async function handleDeleteLecture(currentIndex: number) {
         >
           Add Lecture
         </Button>
-        {/* {mediaUploadProgress ? (
-          <MediaProgressbar
-            isMediaUploading={mediaUploadProgress}
-            progress={mediaUploadProgressPercentage}
-          />
-        ) : null} */}
         <div className="mt-4 space-y-4">
           {courseCurriculumFormData.map((curriculumItem: any, index: any) => (
             <div className="border p-5 rounded-md">
@@ -242,7 +167,7 @@ async function handleDeleteLecture(currentIndex: number) {
                     onCheckedChange={(value) =>
                       handleFreePreviewChange(value, index)
                     }
-                    checked={courseCurriculumFormData[index]?.freePreview}
+                    checked={courseCurriculumFormData[index]?.preview}
                     id={`freePreview-${index + 1}`}
                   />
                   <Label htmlFor={`freePreview-${index + 1}`}>
@@ -258,11 +183,11 @@ async function handleDeleteLecture(currentIndex: number) {
                       height="200px"
                       url={courseCurriculumFormData[index]?.videoUrl}
                     />
-                    <Button
+                    {/* <Button
                       onClick={() => handleReplaceVideo(index)}
                     >
                       Replace Video
-                    </Button>
+                    </Button> */}
                     <Button
                       onClick={() => handleDeleteLecture(index)}
                       className="bg-red-900"

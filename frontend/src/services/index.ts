@@ -65,6 +65,17 @@ export async function fetchInstructorCourseListRequest() {
   }
 }
   
+export async function fetchInstructorCourseDetailsRequest(id: string) {
+  try {
+    const { data } = await API.get(`/course/${id}`);
+    return data;
+  } catch (error) {
+    const errData = (error as AxiosError).response?.data as { message: string };
+    console.error('Error fetching courses:', errData);
+    throw errData || {message: 'Course fetch failed'};
+  }
+}
+
 export async function addNewCourseRequest(formData: CreateCourseFormData, onProgressCallback: (progress: number) => void) {
   try {
     const {title, description, price, image, level, category, instructorId} = formData;
@@ -107,12 +118,6 @@ export async function addNewCourseRequest(formData: CreateCourseFormData, onProg
     throw errData || {message: 'Course creation failed'};
   }
 }
-  
-export async function fetchInstructorCourseDetailsRequest(id: string) {
-  const { data } = await API.get(`/course/${id}`);
-
-  return data;
-}
 
 export async function updateCourseByIdRequest(id: string, formData: UpdateCourseFormData) {
   const { data } = await API.put(`/course/${id}`, formData);
@@ -122,12 +127,12 @@ export async function updateCourseByIdRequest(id: string, formData: UpdateCourse
 
 export async function addLectureRequest(courseId: string, formData: LectureFormData, onProgressCallback: (progress: number) => void) {
   try {
-    const {title, description, video, freePreview} = formData;
+    const {title, description, video, preview} = formData;
     
     const { data: lectureData } = await API.post(`/course/${courseId}/lecture`, {
       title,
       description,
-      preview: freePreview
+      preview
     });
 
     const  {name, type, size} = video;
@@ -158,6 +163,18 @@ export async function addLectureRequest(courseId: string, formData: LectureFormD
     const errData = (error as AxiosError).response?.data as { message: string };
     console.error('Error creating Lecture:', errData);
     throw errData || {message: 'Lecture creation failed'};
+  }
+}
+
+export async function deleteLectureRequest(courseId: string, lectureId: string) {
+  try {
+    const { data } = await API.delete(`/course/${courseId}/lecture/${lectureId}`);
+  
+    return data;
+  } catch (error) {
+    const errData = (error as AxiosError).response?.data as { message: string };
+    console.error('Error deleting Lecture:', errData);
+    throw errData || {message: 'Lecture deletion failed'};
   }
 }
 

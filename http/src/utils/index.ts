@@ -11,7 +11,7 @@ const s3Client = new S3Client({
 });
 
 // Funtion to get objects(files) from the bucket
-export async function getFileUrl(key: string) {
+export async function GetFileUrl(key: string) {
 	try {
         const getObjectCommand = new GetObjectCommand({
             Bucket: process.env.AWS_BUCKET_NAME,
@@ -67,12 +67,16 @@ export async function GetLectureUploadUrl(courseId: string, lectureId: string, f
     }
 }
 
-async function deleteObject(key: string) {
-    const deleteObjectCommand = new DeleteObjectCommand({
-        Bucket: "course-learning-app",
-        Key: key,
-    });
-
-    const response = await s3Client.send(deleteObjectCommand);
-    return response;
+export async function DeleteFile(key: string) {
+    try {
+        const deleteObjectCommand = new DeleteObjectCommand({
+            Bucket: process.env.AWS_BUCKET_NAME,
+            Key: key,
+        });
+    
+        const response = await s3Client.send(deleteObjectCommand);
+        return response;
+    } catch (error) {
+        throw error;
+    }
 }

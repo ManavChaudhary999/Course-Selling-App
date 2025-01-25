@@ -132,15 +132,24 @@ export const courseLandingInitialFormData = {
   price: 0,
   image: null,
   imageUrl: ""
-};
+};  
 
-export const courseCurriculumInitialFormData = [
+interface courseCurriculumInitialFormDataType {
+  id?: string;
+  title: string;
+  description: string;
+  // publicId?: string
+  video: File | null;
+  videoUrl: string;
+  preview: boolean;
+}
+export const courseCurriculumInitialFormData: courseCurriculumInitialFormDataType[] = [
   {
     title: "",
     description: "",
     video: null,
     videoUrl: "", // File Preview Url
-    freePreview: false,
+    preview: false,
   },
 ];
 

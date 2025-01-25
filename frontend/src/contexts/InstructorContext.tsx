@@ -1,16 +1,18 @@
 import {courseCurriculumInitialFormData,courseLandingInitialFormData} from "@/config";
 import { createContext, useState, useContext, ReactNode } from "react";
-import { Course } from "@/types";
-import { CreateCourseFormData } from "@/types/course-form";
+import { InstructorCourseType } from "@/types";
+
 
 interface InstructorContextType {
-  courses: Course[];
+  instructorCoursesList: InstructorCourseType[];
+  setInstructorCoursesList: any;
   loading: boolean;
-  currentEditedCourseId: number | null;
+  setLoading: any;
+  currentEditedCourseId: string;
   setCurrentEditedCourseId: any;
   courseLandingFormData: any;
-  courseCurriculumFormData: any;
   setCourseLandingFormData: any;
+  courseCurriculumFormData: any;
   setCourseCurriculumFormData: any;
   mediaUploadProgress: boolean;
   setMediaUploadProgress: any;
@@ -19,17 +21,19 @@ interface InstructorContextType {
 }
 
 export const InstructorContext = createContext<InstructorContextType>({
-    courses: [],
+    instructorCoursesList: [],
+    setInstructorCoursesList: () => {},
     loading: false,
-    currentEditedCourseId: null,
-    courseCurriculumFormData: courseCurriculumInitialFormData,
-    courseLandingFormData: courseLandingInitialFormData,
-    mediaUploadProgress: false,
-    mediaUploadProgressPercentage: 0,
+    setLoading: () => {},
+    currentEditedCourseId: "",
     setCurrentEditedCourseId: () => {},
+    courseCurriculumFormData: courseCurriculumInitialFormData,
     setCourseCurriculumFormData: () => {},
+    courseLandingFormData: courseLandingInitialFormData,
     setCourseLandingFormData: () => {},
+    mediaUploadProgress: false,
     setMediaUploadProgress: () => {},
+    mediaUploadProgressPercentage: 0,
     setMediaUploadProgressPercentage: () => {},
 });
 
@@ -45,29 +49,32 @@ export function InstructorProvider({ children } : InstructorProviderProps) {
   const [mediaUploadProgress, setMediaUploadProgress] = useState(false);
   const [mediaUploadProgressPercentage, setMediaUploadProgressPercentage] =
     useState(0);
-  const [courses, setCourses] = useState([]);
-  const [currentEditedCourseId, setCurrentEditedCourseId] = useState(null);
+  const [instructorCoursesList, setInstructorCoursesList] = useState([]);
+  const [currentEditedCourseId, setCurrentEditedCourseId] = useState("");
   const [loading, setLoading] = useState<boolean>(false);
 
 
+
   const value = {
-      courses,
+      instructorCoursesList,
+      setInstructorCoursesList,
       currentEditedCourseId,
-      loading,
-      courseLandingFormData,
-      courseCurriculumFormData,
-      mediaUploadProgress,
-      mediaUploadProgressPercentage,
-      setCourseLandingFormData,
-      setCourseCurriculumFormData,
       setCurrentEditedCourseId,
+      loading,
+      setLoading,
+      courseLandingFormData,
+      setCourseLandingFormData,
+      courseCurriculumFormData,
+      setCourseCurriculumFormData,
+      mediaUploadProgress,
       setMediaUploadProgress,
+      mediaUploadProgressPercentage,
       setMediaUploadProgressPercentage,
   };
 
   return (
       <InstructorContext.Provider value={value}>
-          {children}
+        {children}
       </InstructorContext.Provider>
   );
 }

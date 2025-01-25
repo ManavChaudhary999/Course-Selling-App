@@ -103,14 +103,8 @@ function VideoPlayer({ width = "100%", height = "100%", url, onProgressUpdate, p
 
   const handleFullScreen = React.useCallback(() => {
     if (!isFullScreen) {
-      if (playerContainerRef?.current?.requestFullscreen) {
-        playerContainerRef.current.requestFullscreen();
-      }
-    } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      }
-    }
+      playerContainerRef.current?.requestFullscreen();
+    } else { document.exitFullscreen(); }
   }, [isFullScreen, playerContainerRef]);
 
   const handleMouseMove = React.useCallback(() => {

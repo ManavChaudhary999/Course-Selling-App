@@ -6,7 +6,7 @@ import {
     TableHeader,
     TableRow,
   } from "@/components/ui/table"
-import { Course } from "@/types"
+import { InstructorCourseType } from "@/types"
   
   const mockCourses = [
     {
@@ -49,7 +49,7 @@ import { Course } from "@/types"
     Advance: "text-yellow-600",
   }
   
-  export function CourseTable({courses}: {courses: Course[] | null}) {
+  export function CourseTable({courses}: {courses: InstructorCourseType[] | null}) {
     return (
       <div className="rounded-md border">
         <Table>

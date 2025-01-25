@@ -14,7 +14,7 @@ export interface User {
   role: 'INSTRUCTOR' | 'STUDENT';
 }
 
-export interface Course {
+export interface InstructorCourseType {
   id: string;
   isntructorId: string;
   title: string;
@@ -26,17 +26,12 @@ export interface Course {
   categoryId: string;
   created_at: string;
   updated_at: string;
-  // duration: number;
-  // instructor: string;
+  enrollments: Enrollment[];
 }
 
 export interface Enrollment {
   id: string;
-  user_id: string;
-  course_id: string;
-  enrolled_at: string;
-  completed_at?: string;
-  courses?: Course;
+  user: User;
 }
 
 export interface Progress {

@@ -1,18 +1,18 @@
 import { useState, createContext, useContext, useEffect } from "react";
 import { AxiosError } from "axios";
 import API from "@/api/axios";
-import {Course} from '../types';
+import {InstructorCourseType} from '../types';
 
 interface UploadCourseReturnType {
-    course: Course;
+    course: InstructorCourseType;
     message: string;
 }
 
 interface CoursesContextType {
-    courses: Course[] | null;
+    courses: InstructorCourseType[] | null;
     loading: boolean;
     getCourses: () => Promise<void>;
-    getCourseById: (id: number) => Promise<Course>;
+    getCourseById: (id: number) => Promise<InstructorCourseType>;
     uploadCourse: (data: FormData) => Promise<UploadCourseReturnType>;
 }
 
@@ -20,7 +20,7 @@ const CoursesContext = createContext<CoursesContextType>({
     courses: null,
     loading: false,
     getCourses: () => Promise.resolve(),
-    getCourseById: () => Promise.resolve({} as Course),
+    getCourseById: () => Promise.resolve({} as InstructorCourseType),
     uploadCourse: () => Promise.resolve({} as UploadCourseReturnType)
 });
 
@@ -28,7 +28,7 @@ export const useCourses = () => useContext(CoursesContext);
 
 export const CoursesProvider = ({children} : {children: React.ReactNode}) => {
     
-    const [courses, setCourses] = useState<Course[] | null>(null);
+    const [courses, setCourses] = useState<InstructorCourseType[] | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {

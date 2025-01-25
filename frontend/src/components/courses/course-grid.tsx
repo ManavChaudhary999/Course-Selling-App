@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
-import { Course } from "@/types"
+import { InstructorCourseType } from "@/types"
 
 const mockCourses = [
   {
@@ -82,7 +82,7 @@ const levelStyles = {
   Master: "bg-purple-100 text-purple-800",
 }
 
-export function CourseGrid({courses}: {courses: Course[] | null}) {
+export function CourseGrid({courses}: {courses: InstructorCourseType[] | null}) {
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
       {courses?.map((course) => (

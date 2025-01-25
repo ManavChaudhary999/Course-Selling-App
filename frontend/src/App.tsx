@@ -35,6 +35,7 @@ function App() {
           <Route index element={<InstructorDashboard />} />
           <Route path='courses' element={<InstructorCourses />} />
           <Route path='create-course' element={<CreateCoursePage />} />
+          <Route path='edit-course/:courseId' element={<CreateCoursePage />} />
           <Route path='lessions' element={<h1>Lessions</h1>} />
         </Route>
         <Route path='*' element={<NotFound />} />

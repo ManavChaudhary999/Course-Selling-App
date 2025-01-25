@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import db from "../db";
 import {courseCreateSchema, courseUpdateSchema, lectureCreateSchema, lectureUpdateSchema} from '../@types/zod.types';
 import { AuthMiddleware } from "../middleware/auth";
-import { GetLectureUploadUrl, GetThumbnailUploadUrl } from "../utils";
+import { DeleteFile, GetFileUrl, GetLectureUploadUrl, GetThumbnailUploadUrl } from "../utils";
 
 const courseRouter = Router();
 
@@ -157,8 +157,39 @@ courseRouter.get('/', AuthMiddleware, async (req: Request, res: Response) => {
         const courses = await db.course.findMany({
             where: {
                 instructorId: userId
+            },
+            include: {
+                enrollments: {
+                    select: {
+                        id: true,
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                profileUrl: true,
+                            }
+                        }
+                    },
+                },
             }
         });
+
+        courses.forEach(async (course, idx) => {
+            const imageUrl = await GetFileUrl(course.imagePublicId || "");
+
+            await db.course.update({
+                where: {
+                    id: course.id,
+                    instructorId: userId
+                },
+                data: {
+                    imageUrl: imageUrl
+                }
+            })
+
+            courses[idx].imageUrl = imageUrl;
+        })
     
         res.json({courses});
     } catch (error) {
@@ -221,56 +252,6 @@ courseRouter.post('/', AuthMiddleware, async (req: Request, res: Response) => {
     }
 });
 
-courseRouter.post('/:id/thumbnail', AuthMiddleware, async (req: Request, res: Response) => {
-    try{
-        const userId = req.userId;
-        const courseId = req.params.id;
-        const {fileName, fileType} = req.body;
-
-        if(!courseId || !fileName || !fileType) {
-            res.status(401).json({
-                message: "CourseId ,fileName and fileType  are required",
-            });
-            return;
-        }
-
-        const user = await db.user.findUnique({
-            where: {
-                id: userId,
-            },
-        });
-
-        if(!user || user.role !== 'INSTRUCTOR') {
-            res.status(401).json({
-                message: "User is not an instructor",
-            });
-            return;
-        }
-
-        const {publicId, url} = await GetThumbnailUploadUrl(courseId, fileName, fileType);
-
-        const course = await db.course.update({
-            where: {
-                id: courseId,
-                instructorId: userId
-            },
-            data: {
-                imageUrl: publicId,
-            },
-        });
-
-        res.json({
-            message: 'Course Updated Succesfully',
-            presignedUrl: url,
-        });
-    }
-    catch (err) {
-        res.status(403).json({
-            message: (err as Error).message || 'Can not get Upload Url',
-        })
-    }
-});
-
 courseRouter.get('/:id', AuthMiddleware, async (req: Request, res: Response) => {
     try{
         const userId = req.userId;
@@ -282,25 +263,54 @@ courseRouter.get('/:id', AuthMiddleware, async (req: Request, res: Response) => 
                 instructorId: userId
             },
             include: {
-                Instructor: {
+                // Instructor: {
+                //     select: {
+                //         id: true,
+                //         name: true,
+                //         profileUrl: true,
+                //     },
+                // },
+                lectures: {
+                    orderBy: {
+                        createdAt: "asc"
+                    },
                     select: {
                         id: true,
-                        name: true,
-                        profileUrl: true,
-                    },
-                },
-                lectures: true
+                        title: true,
+                        description: true,
+                        preview: true,
+                        publicId: true,
+                        videoUrl: true,
+                        createdAt: true,
+                        updatedAt: true,
+                    }
+                }
             }
         });
 
+        course?.lectures.forEach(async (lecture, idx) => {
+            const videoUrl = await GetFileUrl(lecture.publicId || "");
+
+            await db.lecture.update({
+                where: {
+                    id: lecture.id
+                },
+                data: {
+                    videoUrl
+                }
+            })
+
+            course.lectures[idx].videoUrl = videoUrl
+        })
+
         res.json({
-            message: 'Course Updated Succesfully',
+            message: 'Course Fetched Succesfully',
             course,
         });
     }
     catch (err) {
         res.status(403).json({
-            message: 'Course can not be Updated',
+            message: 'Course can not be Fetched',
         })
     }
 });
@@ -333,7 +343,7 @@ courseRouter.put('/:id', AuthMiddleware, async (req: Request, res: Response) => 
                     title,
                     description,
                     price,
-                    imageUrl: publicId,
+                    imagePublicId: publicId,
                     level,
                     isPublished,
                     category,
@@ -515,8 +525,6 @@ courseRouter.put('/:id/lecture/:lectureId', AuthMiddleware, async (req: Request,
 
         const {title, description, preview, video} = data;
 
-        console.log(data);
-
         if(video?.name && video?.type){
             const {publicId, url} = await GetLectureUploadUrl(courseId, lectureId, video.name, video.type);
             
@@ -534,8 +542,7 @@ courseRouter.put('/:id/lecture/:lectureId', AuthMiddleware, async (req: Request,
                     title,
                     description,
                     preview,
-                    videoUrl: publicId,
-                    courseId
+                    publicId,
                 }
             });
             
@@ -581,7 +588,28 @@ courseRouter.delete('/:id/lecture/:lectureId', AuthMiddleware, async (req: Reque
         const courseId = req.params.id;
         const lectureId = req.params.lectureId;
         
-        const lecture = await db.lecture.delete({
+        const lecture = await db.lecture.findUnique({
+            where: {
+                id: lectureId,
+                course: {
+                    id: courseId,
+                    instructorId: userId
+                },
+            }
+        });
+
+        if(!lecture) {
+            res.status(404).json({
+                message: 'Lecture Not Found',
+            });
+            return;
+        }
+
+        if(lecture.publicId) {
+            await DeleteFile(lecture.publicId);
+        }
+        
+        await db.lecture.delete({
             where: {
                 id: lectureId,
                 course: {
@@ -597,7 +625,7 @@ courseRouter.delete('/:id/lecture/:lectureId', AuthMiddleware, async (req: Reque
         });
     } catch (err) {
         res.status(403).json({
-            message: 'Lecture can not be Deleted',
+            message: (err as Error).message || 'Lecture can not be Deleted',
         })
     }
 })
