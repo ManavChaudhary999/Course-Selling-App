@@ -1,5 +1,5 @@
 import {Outlet, useLocation} from 'react-router-dom';
-import { BookOpen, GraduationCap, LayoutDashboard, MessageSquare, Settings } from 'lucide-react';
+import { BookOpen, LayoutDashboard, MessageSquare, Settings } from 'lucide-react';
 import {Sidebar} from '../components/Sidebar';
 import {UserNav} from '../components/UserNav';
 
@@ -36,11 +36,6 @@ const instructorNavItems = [
     title: "Courses",
     href: "/instructor/courses",
     icon: BookOpen,
-  },
-  {
-    title: "Lessons",
-    href: "/instructor/lessons",
-    icon: GraduationCap,
   },
 ]
 

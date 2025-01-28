@@ -38,7 +38,6 @@ function InstructorCourses() {
         setLoading(true);
         const data = await fetchInstructorCourseListRequest();
         setInstructorCoursesList(data.courses);
-        console.log(data.courses);
       } catch (error) {
         setLoading(false);
         throw error;

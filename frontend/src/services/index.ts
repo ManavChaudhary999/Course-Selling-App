@@ -78,7 +78,7 @@ export async function fetchInstructorCourseDetailsRequest(id: string) {
 
 export async function addNewCourseRequest(formData: CreateCourseFormData, onProgressCallback: (progress: number) => void) {
   try {
-    const {title, description, price, image, level, category, instructorId} = formData;
+    const {title, description, price, image, level, category} = formData;
 
     const { data: courseData } = await API.post(`/course`, {
       title,
@@ -86,7 +86,6 @@ export async function addNewCourseRequest(formData: CreateCourseFormData, onProg
       price: Number(price),
       level,
       category,
-      instructorId
     });
 
     const {name, size, type} = image;
@@ -119,10 +118,24 @@ export async function addNewCourseRequest(formData: CreateCourseFormData, onProg
   }
 }
 
-export async function updateCourseByIdRequest(id: string, formData: UpdateCourseFormData) {
-  const { data } = await API.put(`/course/${id}`, formData);
+export async function updateCourseByIdRequest(courseId: string, formData: UpdateCourseFormData) {
+  try {
+    const {title, description, price, level, category} = formData;
 
-  return data;
+    const { data } = await API.put(`/course/${courseId}`, {
+      title,
+      description,
+      price: Number(price),
+      level,
+      category,
+    });
+
+    return data;
+  } catch (error) {
+    const errData = (error as AxiosError).response?.data as {message: string};
+    console.log(errData);
+    throw errData || {message: 'Course update failed'};
+  }
 }
 
 export async function addLectureRequest(courseId: string, formData: LectureFormData, onProgressCallback: (progress: number) => void) {
@@ -166,6 +179,24 @@ export async function addLectureRequest(courseId: string, formData: LectureFormD
   }
 }
 
+export async function updateLectureRequest(courseId: string, lectureId: string, formData: LectureFormData) {
+  try {
+    const {title, description, preview} = formData;
+    
+    const { data } = await API.put(`/course/${courseId}/lecture/${lectureId}`, {
+      title,
+      description,
+      preview
+    });
+
+    return data;
+  } catch (error) {
+    const errData = (error as AxiosError).response?.data as { message: string };
+    console.error('Error updating Lecture:', errData);
+    throw errData || {message: 'Lecture update failed'};
+  }
+}
+
 export async function deleteLectureRequest(courseId: string, lectureId: string) {
   try {
     const { data } = await API.delete(`/course/${courseId}/lecture/${lectureId}`);
@@ -178,35 +209,7 @@ export async function deleteLectureRequest(courseId: string, lectureId: string) 
   }
 }
 
-// export async function mediaUploadService(formData, onProgressCallback) {
-//   const { data } = await API.post(`/course/${id}/lecture`, formData, {
-//     onUploadProgress: (progressEvent) => {
-//       const percentCompleted = Math.round(
-//         (progressEvent.loaded * 100) / progressEvent.total
-//       );
-//       onProgressCallback(percentCompleted);
-//     },
-//   });
-
-//   return data;
-// }
-
-// export async function mediaBulkUploadService(formData, onProgressCallback) {
-//   const { id } = formData;
-//   const { data } = await API.post(`/course/${id}/lecture`, formData, {
-//     onUploadProgress: (progressEvent) => {
-//       const percentCompleted = Math.round(
-//         (progressEvent.loaded * 100) / progressEvent.total
-//       );
-//       onProgressCallback(percentCompleted);
-//     },
-//   });
-
-//   return data;
-// }
-
 // ---------------- Student Requests -------------------
-
 
 export async function fetchStudentViewCourseListRequest() {
   const { data } = await API.get(`/course/preview`);

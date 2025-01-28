@@ -7,14 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useInstructor } from "@/contexts/InstructorContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { addLectureRequest, addNewCourseRequest, fetchInstructorCourseDetailsRequest } from "@/services";
+import { addLectureRequest, addNewCourseRequest, fetchInstructorCourseDetailsRequest, updateCourseByIdRequest, updateLectureRequest } from "@/services";
 import { useToast } from "@/hooks/use-toast";
 import {
   courseCurriculumInitialFormData,
   courseLandingInitialFormData,
 } from "@/config";
-import { CreateCourseFormData } from "@/types/course-form";
+import { CreateCourseFormData, LectureFormData, UpdateCourseFormData } from "@/types/course-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import MediaProgressbar from "@/components/MediaProgressBar";
 
@@ -33,7 +32,6 @@ function CreateCoursePage() {
     mediaUploadProgressPercentage,
     setMediaUploadProgressPercentage,
   } = useInstructor();
-  const { user } = useAuth();
 
   const navigate = useNavigate();
   const params = useParams();
@@ -48,7 +46,6 @@ function CreateCoursePage() {
   }
 
   function validateFormData() {
-    console.log("Validating form data...");
     for (const key in courseLandingFormData) {
       if (isEmpty(courseLandingFormData[key])) {
         return false;
@@ -56,7 +53,6 @@ function CreateCoursePage() {
     }
     
     // let hasFreePreview = false;
-    console.log("Validating form data begin...");
     
     for (const item of courseCurriculumFormData) {
       if (
@@ -73,7 +69,6 @@ function CreateCoursePage() {
       }
       
       // return hasFreePreview;
-      console.log("Validating form data end");
 
     return true;
   }
@@ -81,17 +76,7 @@ function CreateCoursePage() {
   async function handleCreateCourse() {
     const courseFinalFormData: CreateCourseFormData = {
       ...courseLandingFormData,
-      instructorId: user?.id,
-      lectures: courseCurriculumFormData,
     };
-
-    // const response =
-    //   currentEditedCourseId !== null
-    //     ? await updateCourseByIdService(
-    //         currentEditedCourseId,
-    //         courseFinalFormData
-    //       )
-    //     : await addNewCourseService(courseFinalFormData);
 
     try {      
       toast({
@@ -129,10 +114,74 @@ function CreateCoursePage() {
       setCourseCurriculumFormData(courseCurriculumInitialFormData);
       setCurrentEditedCourseId(null);
       setMediaUploadProgress(false);
-      navigate(-1);
+      navigate('/instructor');
     } catch (err) {
       toast({
         title: 'Could Not Create Course',
+        description: (err as Error).message,
+        variant: "destructive"
+      })
+      setMediaUploadProgress(false);
+    }
+  }
+  
+  async function handleUpdateCourse() {
+    const courseFinalFormData: UpdateCourseFormData = {
+      ...courseLandingFormData,
+    };
+
+    try {      
+      toast({
+        title: `Updating Course...)`,
+        description: 'Please wait while we Update your course.',
+        variant: "default"
+      })
+
+      
+      await updateCourseByIdRequest(currentEditedCourseId, courseFinalFormData);
+      
+      for(let i = 0; i < courseCurriculumFormData.length; i++){
+        const lectureFormData: LectureFormData = courseCurriculumFormData[i];
+        
+        toast({
+          title: `Uploading Lecture${i + 1}`,
+          description: 'Please wait while we update your lecture.',
+          variant: "default"
+        })
+        
+        if(courseCurriculumFormData[i].publicId){
+          await updateLectureRequest(currentEditedCourseId, courseCurriculumFormData[i].id, lectureFormData);
+          
+          toast({
+            title: `Lecture${i + 1} Updated Successfully`,
+            variant: "success"
+          })
+        }
+        else {
+          setMediaUploadProgress(true);
+          
+          await addLectureRequest(currentEditedCourseId, lectureFormData, setMediaUploadProgressPercentage);
+          
+          toast({
+            title: `Lecture${i + 1} Uploaded Successfully`,
+            variant: "success"
+          })
+        }
+      }
+
+      toast({
+        title: 'Course Updated Successfully',
+        variant: "success"
+      })
+
+      setCourseLandingFormData(courseLandingInitialFormData);
+      setCourseCurriculumFormData(courseCurriculumInitialFormData);
+      setCurrentEditedCourseId(null);
+      setMediaUploadProgress(false);
+      navigate('/instructor');
+    } catch (err) {
+      toast({
+        title: 'Could Not Update Course',
         description: (err as Error).message,
         variant: "destructive"
       })
@@ -156,7 +205,6 @@ function CreateCoursePage() {
           return acc;
         }, {});
   
-        console.log(data?.course);
         setCourseLandingFormData(setCourseFormData);
         setCourseCurriculumFormData(data?.course?.lectures);
         setLoading(false);
@@ -186,7 +234,7 @@ function CreateCoursePage() {
         <Button
           disabled={!validateFormData() || mediaUploadProgress}
           className="text-sm tracking-wider font-bold px-8"
-          onClick={handleCreateCourse}
+          onClick={currentEditedCourseId ? handleUpdateCourse : handleCreateCourse}
         >
           SUBMIT
         </Button>
@@ -203,7 +251,7 @@ function CreateCoursePage() {
               <Tabs defaultValue="course-landing-page" className="space-y-4">
                 <TabsList>
                   <TabsTrigger value="course-landing-page">Course Landing Page</TabsTrigger>
-                  <TabsTrigger value="thumbnail">Course Thumbnail</TabsTrigger>
+                  {!currentEditedCourseId && <TabsTrigger value="thumbnail">Course Thumbnail</TabsTrigger>}
                   <TabsTrigger value="curriculum">Curriculum</TabsTrigger>
                 </TabsList>
                 {

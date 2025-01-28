@@ -138,7 +138,7 @@ interface courseCurriculumInitialFormDataType {
   id?: string;
   title: string;
   description: string;
-  // publicId?: string
+  publicId?: string
   video: File | null;
   videoUrl: string;
   preview: boolean;
