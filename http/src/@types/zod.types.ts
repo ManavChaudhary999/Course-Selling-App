@@ -13,7 +13,6 @@ export const courseCreateSchema = z.object({
     title: z.string({message: 'Title is required'}),
     description: z.string().optional(),
     price: z.number().nonnegative({message: 'Price should be greater than or equal to 0'}).optional(),
-    imageUrl: z.string().optional(),
     level: z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED'], {required_error: 'Level is required'}),
     category: z.string(),
     instructorId: z.string(),
@@ -28,17 +27,17 @@ export const courseUpdateSchema = courseCreateSchema.partial({
     courseId: z.string(),
     isPublished: z.boolean().optional(),
     thumbnail: z.object({
-        name: z.string().optional(),
-        type: z.string().optional(),
-        size: z.number().optional(),
-    }),
+        name: z.string(),
+        type: z.string(),
+        size: z.number(),
+    }).optional(),
 })
 
 export const lectureCreateSchema = z.object({
     title: z.string({message: 'Title is required'}),
     description: z.string().optional(),
     publicId: z.string().optional(),
-    videoUrl: z.string({message: 'Video URL is required'}).optional(),
+    videoUrl: z.string().optional(),
     preview: z.boolean().optional(),
     courseId: z.string(),
 });
@@ -48,10 +47,10 @@ export const lectureUpdateSchema = lectureCreateSchema.partial({
 }).extend({
     lectureId: z.string(),
     video: z.object({
-        name: z.string().optional(),
-        type: z.string().optional(),
-        size: z.number().optional(),
-    }),
+        name: z.string(),
+        type: z.string(),
+        size: z.number(),
+    }).optional(),
 })
 
 export const coursePurchaseSchema = z.object({

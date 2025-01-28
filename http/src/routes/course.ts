@@ -213,7 +213,7 @@ courseRouter.post('/', AuthMiddleware, async (req: Request, res: Response) => {
             return;
         }
 
-        const {title, description, price, imageUrl, level, category, instructorId} = data;
+        const {title, description, price, level, category, instructorId} = data;
 
         const user = await db.user.findUnique({
             where: {
@@ -233,7 +233,6 @@ courseRouter.post('/', AuthMiddleware, async (req: Request, res: Response) => {
                 title,
                 description,
                 price: price || 0,
-                imageUrl,
                 level,
                 category,
                 instructorId,
@@ -329,7 +328,7 @@ courseRouter.put('/:id', AuthMiddleware, async (req: Request, res: Response) => 
     
             return;
         }
-        const {title, description, price, imageUrl, level, isPublished, category, instructorId, thumbnail} = data;
+        const {title, description, price, level, isPublished, category, instructorId, thumbnail} = data;
 
         if(thumbnail?.name && thumbnail.type) {
             const {publicId, url} = await GetThumbnailUploadUrl(courseId, thumbnail.name, thumbnail.type);
@@ -567,7 +566,6 @@ courseRouter.put('/:id/lecture/:lectureId', AuthMiddleware, async (req: Request,
                 title,
                 description,
                 preview,
-                courseId
             }
         });
         
