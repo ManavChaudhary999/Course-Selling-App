@@ -16,7 +16,7 @@ import {
 interface VideoPlayerProps {
     width?: string;
     height?: string;
-    url: string;
+    url: string | undefined;
     onProgressUpdate?: (progress: number) => void;
     progressData?: any;
 }

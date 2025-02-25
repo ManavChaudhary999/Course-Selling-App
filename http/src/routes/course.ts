@@ -7,7 +7,7 @@ import { getFilterOptions, getSortingOptions } from "../utils/helper";
 
 const courseRouter = Router();
 
-courseRouter.get('/preview', async (req: Request, res: Response) => {   
+courseRouter.get('/preview/search', async (req: Request, res: Response) => {   
     try {
         console.log("Fectching Courses");
         console.log("Query", req.query);
@@ -29,18 +29,10 @@ courseRouter.get('/preview', async (req: Request, res: Response) => {
                         profileUrl: true,
                     },
                 },
-                lectures: {
-                    orderBy: {
-                        createdAt: "asc"
-                    },
+                _count: {
                     select: {
-                        id: true,
-                        title: true,
-                        description: true,
-                        // preview: true,
-                        // publicId: true,
-                        // videoUrl: true
-                    }
+                        lectures: true,
+                    },
                 }
             }
         });
@@ -81,39 +73,6 @@ courseRouter.get('/preview', async (req: Request, res: Response) => {
         });
     
         res.json({courses});
-
-        // // Define sorting order
-        // const orderByClause = [];
-        // if (sp === "low") {
-        //     orderByClause.push({ price: "asc" }); // Sort by price in ascending order
-        // } else if (sp === "high") {
-        //     orderByClause.push({ price: "desc" }); // Sort by price in descending order
-        // }
-
-        // Fetch courses with Prisma
-        // const courses = await db.course.findMany({
-        //     where: {
-        //         isPublished: true,
-        //         OR: [
-        //             { title: { contains: q, mode: "insensitive" } },
-        //             { description: { contains: q, mode: "insensitive" } },
-        //             { category: { contains: q, mode: "insensitive", in: c } },
-        //         ]
-        //     },
-        //     orderBy: [
-        //         {
-        //             price: sortByPrice === "low" ? "asc" : "desc",
-        //         }
-        //     ],
-        //     include: {
-        //         Instructor: {
-        //             select: {
-        //                 name: true,
-        //                 profileUrl: true,
-        //             },
-        //         },
-        //     }
-        // });
     } catch (error) {
         res.status(500).json({
             message: "Something went wrong"
@@ -155,8 +114,46 @@ courseRouter.get('/preview/:id', async (req: Request, res: Response) => {
             });
             return;
         }
-    
-        res.json({course});
+
+        const now = new Date();
+        const lectureKeysToFetch: string[] = [];
+        const courseIdMap: Record<string, string> = {};
+
+        for(const lecture of course?.lectures!) {
+            if(!lecture.videoUrl || !lecture.videoUrlExpiresAt || lecture.videoUrlExpiresAt < now) {
+                if(lecture.publicId) {
+                    lectureKeysToFetch.push(lecture.publicId);
+                    courseIdMap[lecture.publicId] = lecture.id;
+                }
+            }
+        }
+
+        const lectureUrls = await GetFileUrls(lectureKeysToFetch);
+
+        await Promise.all(
+            Object.entries(lectureUrls).map(async ([publicId, url]) => {
+                await db.lecture.update({
+                    where: {
+                        id: courseIdMap[publicId]
+                    },
+                    data: {
+                        videoUrl: url,
+                        videoUrlExpiresAt: new Date(now.getTime() + 60 * 60 * 1000),
+                    }
+                })
+            })
+        );
+
+        for(const lecture of course?.lectures!) {
+            if(lectureUrls[lecture.publicId || ""]) {
+                lecture.videoUrl = lectureUrls[lecture.publicId || ""]; 
+            }
+        }
+
+        res.json({
+            message: 'Course Fetched Succesfully',
+            course,
+        });
     } catch (error) {
         res.status(500).json({
             message: "Cannot Fetch course"

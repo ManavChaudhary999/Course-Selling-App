@@ -20,6 +20,6 @@ This is a simple LMS platform built with Nodejs and React.
 ### TODO
 
 - [x] Sorting and Filtering of Courses
-- [ ] Course Details Page
+- [x] Course Details Page
 - [ ] Purchase Course
 - [ ] User Profile Page

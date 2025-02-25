@@ -16,7 +16,7 @@ import InstructorCourses from './pages/instructor/courses';
 import CreateCoursePage from './pages/instructor/create-course';
 
 import CoursesPage from './pages/student/courses';
-import Course from './pages/Course';
+import CourseDetailsPage from './pages/student/course-details';
 
 function App() {
   return (
@@ -29,7 +29,7 @@ function App() {
         <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
           <Route index element={<StudentHomePage />} />
           <Route path='courses' element={<CoursesPage />} />
-          <Route path='courses/:id' element={<Course />} />
+          <Route path='course/details/:courseId' element={<CourseDetailsPage />} />
           <Route path='settings' element={<UserProfileSettings />} />
         </Route>
           {/* Instructor Routes */}

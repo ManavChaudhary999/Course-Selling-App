@@ -1,4 +1,4 @@
-import { StudentCourseListType, StudentCourseType } from "@/types";
+import { StudentCourseDetailsType, StudentCourseListType } from "@/types";
 import { createContext, ReactNode, useContext, useState } from "react";
 
 interface StudentContextType {
@@ -6,7 +6,7 @@ interface StudentContextType {
     setStudentViewCoursesList: any;
     loadingState: boolean;
     setLoadingState: any;
-    studentViewCourseDetails: any;
+    studentViewCourseDetails: StudentCourseDetailsType | null;
     setStudentViewCourseDetails: any;
     currentCourseDetailsId: string;
     setCurrentCourseDetailsId: any;

@@ -24,32 +24,9 @@ export interface InstructorCourseType {
   level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
   isPublished: boolean;
   categoryId: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   enrollments: Enrollment[];
-}
-
-export interface Enrollment {
-  id: string;
-  user: User;
-}
-
-export interface StudentCourseType {
-  id: string;
-  title: string;
-  description?: string;
-  price: number;
-  imageUrl?: string;
-  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
-  // isPublished: boolean;
-  category: string;
-  created_at: string;
-  updated_at: string;
-  Instructor: {
-    name: string;
-    profileUrl: string;
-  }
-  // enrollments: Enrollment[];
 }
 
 export interface StudentCourseListType {
@@ -61,14 +38,38 @@ export interface StudentCourseListType {
   level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
   // isPublished: boolean;
   category: string;
-  created_at: string;
-  updated_at: string;
+  createdAt: string;
+  updatedAt: string;
   Instructor: {
     name: string;
     profileUrl: string;
   }
-  lectures: LectureType[];
+  lectures: number;
   // enrollments: Enrollment[];
+}
+
+export interface StudentCourseDetailsType {
+  id: string;
+  title: string;
+  description?: string;
+  price: number;
+  imageUrl: string;
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+  // isPublished: boolean;
+  category: string;
+  createdAt: string;
+  updatedAt: string;
+  Instructor: {
+    name: string;
+    profileUrl: string;
+  }
+  lectures: LectureType[],
+  enrollments: Enrollment[];
+}
+
+interface Enrollment {
+  id: string;
+  user: User;
 }
 
 export interface LectureType {
@@ -77,6 +78,8 @@ export interface LectureType {
   description: string;
   videoUrl: string;
   preview: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Progress {

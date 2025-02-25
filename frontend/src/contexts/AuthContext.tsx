@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { User } from '../types';
 import { LoginFormData, RegisterFormData } from '@/types/auth-form';
 import { LoginRequest, LogoutRequest, ProfileRequest, SignupRequest } from '@/services';
-import { Skeleton } from '@/components/ui/skeleton';
+import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 interface AuthContextType {
   user: User | null;
@@ -100,13 +100,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   return (
     <AuthContext.Provider value={value}>
       {loading ? (
-        <div className="h-screen flex flex-col justify-center items-center space-y-3">
-        <Skeleton className="h-[125px] w-[250px] rounded-xl" />
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-[250px]" />
-          <Skeleton className="h-4 w-[200px]" />
-        </div>
-      </div>
+        <LoadingSkeleton />
       ) : children}
     </AuthContext.Provider>
   );

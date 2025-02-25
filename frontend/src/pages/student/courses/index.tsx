@@ -12,16 +12,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
 
 import { courseFilterOptionType, filterOptions, sortOptions } from "@/config";
 import { useAuth } from "@/contexts/AuthContext";
 import { useStudent } from "@/contexts/StudentContext";
 import {
-  fetchStudentSearchCourseListRequest,
   fetchStudentViewCourseListRequest,
 } from "@/services";
 import { useToast } from "@/hooks/use-toast";
+import LoadingSkeleton from "@/components/LoadingSkeleton";
 
 function createSearchParamsHelper(filterParams: any) {
   const queryParams: any[] = [];
@@ -99,7 +98,17 @@ function StudentViewCoursesPage() {
     try {
         setLoadingState(true);
         const data = await fetchStudentViewCourseListRequest(query.toString());
-        setStudentViewCoursesList(data?.courses);
+        console.log(data?.courses);
+        
+        const newCoursesList = [];
+        for(const course of data?.courses) {
+          newCoursesList.push({
+            ...course,
+            lectures: course._count?.lectures,
+          });
+        }
+
+        setStudentViewCoursesList(newCoursesList);
         setLoadingState(false);
     } catch (error) {
         toast({
@@ -113,6 +122,7 @@ function StudentViewCoursesPage() {
 
   async function handleCourseNavigate(getCurrentCourseId: string) {
     console.log("Course Details: ", getCurrentCourseId);
+    navigate(`/course/details/${getCurrentCourseId}`);
     // const response = await checkCoursePurchaseInfoService(
     //   getCurrentCourseId,
     //   auth?.user?._id
@@ -234,8 +244,8 @@ function StudentViewCoursesPage() {
                         </span>
                       </p>
                       <p className="text-[16px] text-gray-600 mt-3 mb-2">
-                        {`${courseItem.lectures?.length} ${
-                          courseItem.lectures?.length <= 1
+                        {`${courseItem.lectures} ${
+                          courseItem.lectures <= 1
                             ? "Lecture"
                             : "Lectures"
                         } - ${courseItem?.level.toUpperCase()} Level`}
@@ -248,7 +258,7 @@ function StudentViewCoursesPage() {
                 </Card>
               ))
             ) : loadingState ? (
-              <Skeleton />
+              <LoadingSkeleton />
             ) : (
               <h1 className="font-extrabold text-4xl">No Courses Found</h1>
             )}

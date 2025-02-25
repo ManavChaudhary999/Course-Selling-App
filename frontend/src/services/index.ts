@@ -213,7 +213,7 @@ export async function deleteLectureRequest(courseId: string, lectureId: string) 
 
 export async function fetchStudentViewCourseListRequest(query: string) {
   try {
-    const { data } = await API.get(`/course/preview?${query}`);
+    const { data } = await API.get(`/course/preview/search?${query}`);
   
     return data;
   }
@@ -222,13 +222,6 @@ export async function fetchStudentViewCourseListRequest(query: string) {
     console.error('Error Fetching Courses:', errData);
     throw errData || {message: 'Cannot Fetch Courses'};
   }
-}
-
-export async function fetchStudentSearchCourseListRequest(query: any) {
-  console.log("Query: ", query);
-  const { data } = await API.get(`/course/preview/search?${query}`);
-
-  return data;
 }
 
 export async function fetchStudentViewCourseDetailsRequest(courseId: string) {
