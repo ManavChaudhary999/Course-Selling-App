@@ -52,26 +52,17 @@ export const initialSignUpFormData = {
   password: "",
 };
 
-export const languageOptions = [
-  { id: "english", label: "English" },
-  { id: "spanish", label: "Spanish" },
-  { id: "french", label: "French" },
-  { id: "german", label: "German" },
-  { id: "chinese", label: "Chinese" },
-  { id: "japanese", label: "Japanese" },
-  { id: "korean", label: "Korean" },
-  { id: "portuguese", label: "Portuguese" },
-  { id: "arabic", label: "Arabic" },
-  { id: "russian", label: "Russian" },
-];
-
-export const courseLevelOptions = [
+export interface courseFilterOptionType {
+  id: string;
+  label: string;
+}
+export const courseLevelOptions: courseFilterOptionType[] = [
   { id: "BEGINNER", label: "Beginner" },
   { id: "INTERMEDIATE", label: "Intermediate" },
   { id: "ADVANCED", label: "Advanced" },
 ];
 
-export const courseCategories = [
+export const courseCategories: courseFilterOptionType[] = [
   { id: "web-development", label: "Web Development" },
   { id: "backend-development", label: "Backend Development" },
   { id: "data-science", label: "Data Science" },
@@ -163,5 +154,4 @@ export const sortOptions = [
 export const filterOptions = {
   category: courseCategories,
   level: courseLevelOptions,
-  primaryLanguage: languageOptions,
 };

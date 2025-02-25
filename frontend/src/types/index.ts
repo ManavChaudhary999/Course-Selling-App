@@ -34,6 +34,51 @@ export interface Enrollment {
   user: User;
 }
 
+export interface StudentCourseType {
+  id: string;
+  title: string;
+  description?: string;
+  price: number;
+  imageUrl?: string;
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+  // isPublished: boolean;
+  category: string;
+  created_at: string;
+  updated_at: string;
+  Instructor: {
+    name: string;
+    profileUrl: string;
+  }
+  // enrollments: Enrollment[];
+}
+
+export interface StudentCourseListType {
+  id: string;
+  title: string;
+  description?: string;
+  price: number;
+  imageUrl: string;
+  level: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED';
+  // isPublished: boolean;
+  category: string;
+  created_at: string;
+  updated_at: string;
+  Instructor: {
+    name: string;
+    profileUrl: string;
+  }
+  lectures: LectureType[];
+  // enrollments: Enrollment[];
+}
+
+export interface LectureType {
+  id: string;
+  title: string;
+  description: string;
+  videoUrl: string;
+  preview: boolean;
+}
+
 export interface Progress {
   id: string;
   enrollment_id: string;

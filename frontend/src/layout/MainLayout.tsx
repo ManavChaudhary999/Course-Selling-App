@@ -1,23 +1,19 @@
 import {Outlet, useLocation} from 'react-router-dom';
-import { BookOpen, LayoutDashboard, MessageSquare, Settings } from 'lucide-react';
+import { BookOpen, LayoutDashboard, MessageSquare, Settings, SearchIcon } from 'lucide-react';
 import {Sidebar} from '../components/Sidebar';
 import {UserNav} from '../components/UserNav';
 
 const studentNavItems = [
   {
-    title: "Dashboard",
+    title: "Explore",
     href: "/",
-    icon: LayoutDashboard,
+    // icon: LayoutDashboard,
+    icon: SearchIcon,
   },
   {
     title: "Courses",
     href: "/courses",
     icon: BookOpen,
-  },
-  {
-    title: "Messages",
-    href: "/messages",
-    icon: MessageSquare,
   },
   {
     title: "Settings",

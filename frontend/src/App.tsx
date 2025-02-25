@@ -7,6 +7,7 @@ import NotFound from './pages/not-found';
 import Login from './pages/auth/login';
 import Register from './pages/auth/register';
 
+import StudentHomePage from './pages/student';
 import UserDashboard from './pages/student/dashboard';
 import UserProfileSettings from './pages/student/profileSettings';
 
@@ -14,6 +15,7 @@ import InstructorDashboard from './pages/instructor';
 import InstructorCourses from './pages/instructor/courses';
 import CreateCoursePage from './pages/instructor/create-course';
 
+import CoursesPage from './pages/student/courses';
 import Course from './pages/Course';
 
 function App() {
@@ -25,8 +27,8 @@ function App() {
 
         {/* Student Routes */}
         <Route path="/" element={<PrivateRoute><MainLayout /></PrivateRoute>}>
-          <Route index element={<UserDashboard />} />
-          {/* <Route path='courses' element={<Courses />} /> */}
+          <Route index element={<StudentHomePage />} />
+          <Route path='courses' element={<CoursesPage />} />
           <Route path='courses/:id' element={<Course />} />
           <Route path='settings' element={<UserProfileSettings />} />
         </Route>

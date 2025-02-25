@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-// import { LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,8 +40,7 @@ export function UserNav() {
           <DropdownMenuItem>Settings</DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
-        {/* <Button onClick={logout}><LogOut className="mr-2 h-4 w-4" /></Button> */}
+        <DropdownMenuItem onClick={logout} className="font-semibold"><LogOut className="mr-2 h-6 w-6" />Log Out</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

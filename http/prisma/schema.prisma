@@ -15,6 +15,7 @@ model User {
   role        Role          @default(STUDENT)
   profilePublicId  String?
   profileUrl  String?
+  profileUrlExpiresAt   DateTime?
   progress    CourseProgress[]
   course      Course[]
   enrollments Enrollment[]
@@ -35,6 +36,7 @@ model Course {
   price         Float?
   imagePublicId String?
   imageUrl      String?
+  imageUrlExpiresAt   DateTime?
   level         Level
   isPublished   Boolean         @default(false)
   category      String
@@ -71,6 +73,7 @@ model Lecture {
   description String?
   publicId    String?
   videoUrl    String?
+  videoUrlExpiresAt   DateTime?
   preview     Boolean   @default(false)
   courseId    String
   course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)

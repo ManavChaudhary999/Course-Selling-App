@@ -10,7 +10,6 @@ const s3Client = new S3Client({
     }
 });
 
-// Funtion to get objects(files) from the bucket
 export async function GetFileUrl(key: string) {
 	try {
         const getObjectCommand = new GetObjectCommand({
@@ -22,6 +21,34 @@ export async function GetFileUrl(key: string) {
             expiresIn: 60 * 60, // 1 hour
         });
         return url;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function GetFileUrls(fileKeys: string[],) {
+	try {
+        if(fileKeys.length === 0) return {};
+
+        const urls: Record<string, string> = {};
+
+        const presignedUrls = fileKeys.map(async (key) => {
+            
+            const getObjectCommand = new GetObjectCommand({
+                Bucket: process.env.AWS_BUCKET_NAME,
+                Key: key,
+            });
+
+            const url = await getSignedUrl(s3Client, getObjectCommand, {
+                expiresIn: 60 * 60, // 1 hour
+            });
+
+            urls[key] = url;
+        })
+
+        await Promise.all(presignedUrls);
+    
+        return urls;
     } catch (error) {
         throw error;
     }

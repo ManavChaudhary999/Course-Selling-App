@@ -2,16 +2,26 @@ import { Router, Request, Response } from "express";
 import db from "../db";
 import {courseCreateSchema, courseUpdateSchema, lectureCreateSchema, lectureUpdateSchema} from '../@types/zod.types';
 import { AuthMiddleware } from "../middleware/auth";
-import { DeleteFile, GetFileUrl, GetLectureUploadUrl, GetThumbnailUploadUrl } from "../utils";
+import { DeleteFile, GetFileUrls, GetLectureUploadUrl, GetThumbnailUploadUrl } from "../utils/aws-config";
+import { getFilterOptions, getSortingOptions } from "../utils/helper";
 
 const courseRouter = Router();
 
-courseRouter.get('/preview', async (req: Request, res: Response) => {
+courseRouter.get('/preview', async (req: Request, res: Response) => {   
     try {
+        console.log("Fectching Courses");
+        console.log("Query", req.query);
+        const { query = "", category = [], level=[], sortBy = "" } = req.query;
+        const q: string = query as string;
+        const c: any = Array.isArray(category) ? category : [category].filter(Boolean);
+        const l: any = Array.isArray(level) ? level : [level].filter(Boolean);
+
+        const where = getFilterOptions(q, c, l);
+        const orderBy = getSortingOptions(sortBy);
+
         const courses = await db.course.findMany({
-            where: {
-                isPublished: true
-            },
+            where: where,
+            orderBy: orderBy,
             include: {
                 Instructor: {
                     select: {
@@ -19,10 +29,91 @@ courseRouter.get('/preview', async (req: Request, res: Response) => {
                         profileUrl: true,
                     },
                 },
+                lectures: {
+                    orderBy: {
+                        createdAt: "asc"
+                    },
+                    select: {
+                        id: true,
+                        title: true,
+                        description: true,
+                        // preview: true,
+                        // publicId: true,
+                        // videoUrl: true
+                    }
+                }
+            }
+        });
+
+        const imageKeysToFetch: string[] = [];
+        const courseIdMap: Record<string, string> = {};
+        const now = new Date();
+        
+        for(const course of courses) {
+            if(!course.imageUrl || !course.imageUrlExpiresAt || course.imageUrlExpiresAt < now) {
+                if(course.imagePublicId) {
+                    imageKeysToFetch.push(course.imagePublicId);
+                    courseIdMap[course.imagePublicId] = course.id;
+                }
+            }
+        }
+
+        const imageUrls = await GetFileUrls(imageKeysToFetch);
+
+        await Promise.all(
+            Object.entries(imageUrls).map(async ([publicId, url]) => {
+                await db.course.update({
+                    where: {
+                        id: courseIdMap[publicId]
+                    },
+                    data: {
+                        imageUrl: url,
+                        imageUrlExpiresAt: new Date(now.getTime() + 60 * 60 * 1000),
+                    }
+                })
+            })
+        );
+
+        courses.forEach(course => {
+            if(imageUrls[course.imagePublicId || ""]) {
+                course.imageUrl = imageUrls[course.imagePublicId || ""];
             }
         });
     
         res.json({courses});
+
+        // // Define sorting order
+        // const orderByClause = [];
+        // if (sp === "low") {
+        //     orderByClause.push({ price: "asc" }); // Sort by price in ascending order
+        // } else if (sp === "high") {
+        //     orderByClause.push({ price: "desc" }); // Sort by price in descending order
+        // }
+
+        // Fetch courses with Prisma
+        // const courses = await db.course.findMany({
+        //     where: {
+        //         isPublished: true,
+        //         OR: [
+        //             { title: { contains: q, mode: "insensitive" } },
+        //             { description: { contains: q, mode: "insensitive" } },
+        //             { category: { contains: q, mode: "insensitive", in: c } },
+        //         ]
+        //     },
+        //     orderBy: [
+        //         {
+        //             price: sortByPrice === "low" ? "asc" : "desc",
+        //         }
+        //     ],
+        //     include: {
+        //         Instructor: {
+        //             select: {
+        //                 name: true,
+        //                 profileUrl: true,
+        //             },
+        //         },
+        //     }
+        // });
     } catch (error) {
         res.status(500).json({
             message: "Something went wrong"
@@ -73,70 +164,6 @@ courseRouter.get('/preview/:id', async (req: Request, res: Response) => {
     }
 })
 
-courseRouter.get('/preview/search', async (req: Request, res: Response) => {
-    try {
-        const { query = "", categories = [], sortByPrice = "" } = req.query;
-        const q: string = query as string;
-        const c: string[] = categories as string[];
-        
-        // const whereClause = {
-        //     isPublished: true,
-        //     OR: [
-        //         { title: { contains: q, mode: "insensitive" } },
-        //         { description: { contains: q, mode: "insensitive" } },
-        //         { category: { name: { contains: q, mode: "insensitive" } } },
-        //     ],
-        // };
-
-        // // Add category filtering if provided
-        // if (categories?.length > 0) {
-        //     whereClause.category = { name: { in: c } };
-        // }
-
-        // // Define sorting order
-        // const orderByClause = [];
-        // if (sp === "low") {
-        //     orderByClause.push({ price: "asc" }); // Sort by price in ascending order
-        // } else if (sp === "high") {
-        //     orderByClause.push({ price: "desc" }); // Sort by price in descending order
-        // }
-
-        // Fetch courses with Prisma
-        const courses = await db.course.findMany({
-            where: {
-                isPublished: true,
-                OR: [
-                    { title: { contains: q, mode: "insensitive" } },
-                    { description: { contains: q, mode: "insensitive" } },
-                    { category: { contains: q, mode: "insensitive", in: c } },
-                ]
-            },
-            orderBy: [
-                {
-                    price: sortByPrice === "low" ? "asc" : "desc",
-                }
-            ],
-            include: {
-                Instructor: {
-                    select: {
-                        name: true,
-                        profileUrl: true,
-                    },
-                },
-            }
-        });
-
-        res.status(200).json({
-            courses: courses || [],
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({
-            message: "An error occurred while searching for courses.",
-        });
-    }
-})
-
 courseRouter.get('/', AuthMiddleware, async (req: Request, res: Response) => {
     try {
         const userId = req.userId;
@@ -175,22 +202,41 @@ courseRouter.get('/', AuthMiddleware, async (req: Request, res: Response) => {
             }
         });
 
-        courses.forEach(async (course, idx) => {
-            const imageUrl = await GetFileUrl(course.imagePublicId || "");
-
-            await db.course.update({
-                where: {
-                    id: course.id,
-                    instructorId: userId
-                },
-                data: {
-                    imageUrl: imageUrl
+        const imageKeysToFetch: string[] = [];
+        const courseIdMap: Record<string, string> = {};
+        const now = new Date();
+        
+        for(const course of courses) {
+            if(!course.imageUrl || !course.imageUrlExpiresAt || course.imageUrlExpiresAt < now) {
+                if(course.imagePublicId) {
+                    imageKeysToFetch.push(course.imagePublicId);
+                    courseIdMap[course.imagePublicId] = course.id;
                 }
-            })
+            }
+        }
 
-            courses[idx].imageUrl = imageUrl;
-        })
-    
+        const imageUrls = await GetFileUrls(imageKeysToFetch);
+
+        await Promise.all(
+            Object.entries(imageUrls).map(async ([publicId, url]) => {
+                await db.course.update({
+                    where: {
+                        id: courseIdMap[publicId]
+                    },
+                    data: {
+                        imageUrl: url,
+                        imageUrlExpiresAt: new Date(now.getTime() + 60 * 60 * 1000),
+                    }
+                })
+            })
+        );
+
+        courses.forEach(course => {
+            if(imageUrls[course.imagePublicId || ""]) {
+                course.imageUrl = imageUrls[course.imagePublicId || ""];
+            }
+        });
+
         res.json({courses});
     } catch (error) {
         res.status(500).json({
@@ -280,6 +326,7 @@ courseRouter.get('/:id', AuthMiddleware, async (req: Request, res: Response) => 
                         preview: true,
                         publicId: true,
                         videoUrl: true,
+                        videoUrlExpiresAt: true,
                         createdAt: true,
                         updatedAt: true,
                     }
@@ -287,20 +334,40 @@ courseRouter.get('/:id', AuthMiddleware, async (req: Request, res: Response) => 
             }
         });
 
-        course?.lectures.forEach(async (lecture, idx) => {
-            const videoUrl = await GetFileUrl(lecture.publicId || "");
+        const now = new Date();
+        const lectureKeysToFetch: string[] = [];
+        const courseIdMap: Record<string, string> = {};
 
-            await db.lecture.update({
-                where: {
-                    id: lecture.id
-                },
-                data: {
-                    videoUrl
+        for(const lecture of course?.lectures!) {
+            if(!lecture.videoUrl || !lecture.videoUrlExpiresAt || lecture.videoUrlExpiresAt < now) {
+                if(lecture.publicId) {
+                    lectureKeysToFetch.push(lecture.publicId);
+                    courseIdMap[lecture.publicId] = lecture.id;
                 }
-            })
+            }
+        }
 
-            course.lectures[idx].videoUrl = videoUrl
-        })
+        const lectureUrls = await GetFileUrls(lectureKeysToFetch);
+
+        await Promise.all(
+            Object.entries(lectureUrls).map(async ([publicId, url]) => {
+                await db.lecture.update({
+                    where: {
+                        id: courseIdMap[publicId]
+                    },
+                    data: {
+                        videoUrl: url,
+                        videoUrlExpiresAt: new Date(now.getTime() + 60 * 60 * 1000),
+                    }
+                })
+            })
+        );
+
+        for(const lecture of course?.lectures!) {
+            if(lectureUrls[lecture.publicId || ""]) {
+                lecture.videoUrl = lectureUrls[lecture.publicId || ""]; 
+            }
+        }
 
         res.json({
             message: 'Course Fetched Succesfully',

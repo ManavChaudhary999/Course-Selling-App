@@ -1,5 +1,6 @@
 import {Link, useLocation} from "react-router-dom";
 import { cn } from "@/lib/utils"
+import { GraduationCap } from 'lucide-react';
 
 interface SidebarItem {
   title: string;
@@ -13,12 +14,12 @@ export function Sidebar({items} : {items: SidebarItem[]}) {
     <div className="flex h-screen w-[64px] flex-col justify-between border-r bg-gray-100/40 lg:w-[240px]">
       <div className="flex flex-col">
         <div className="flex h-[64px] items-center px-6">
-          {/* <Link to="/" className="flex items-center space-x-2"> */}
-            {/* <Home className="h-6 w-6" /> */}
+          <Link to="/" className="flex items-center space-x-2">
+            <GraduationCap className="h-8 w-8 mr-4" />
             <span className="hidden font-bold lg:inline-block">
               Course Platform
             </span>
-          {/* </Link> */}
+          </Link>
         </div>
         <nav className="grid gap-1 p-2">
           {items.map((item, index) => (

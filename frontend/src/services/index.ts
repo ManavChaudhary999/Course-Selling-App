@@ -211,22 +211,36 @@ export async function deleteLectureRequest(courseId: string, lectureId: string) 
 
 // ---------------- Student Requests -------------------
 
-export async function fetchStudentViewCourseListRequest() {
-  const { data } = await API.get(`/course/preview`);
-
-  return data;
+export async function fetchStudentViewCourseListRequest(query: string) {
+  try {
+    const { data } = await API.get(`/course/preview?${query}`);
+  
+    return data;
+  }
+  catch (error) {
+    const errData = (error as AxiosError).response?.data as { message: string };
+    console.error('Error Fetching Courses:', errData);
+    throw errData || {message: 'Cannot Fetch Courses'};
+  }
 }
 
-export async function fetchStudentSearchCourseListRequest(query: string) {
+export async function fetchStudentSearchCourseListRequest(query: any) {
+  console.log("Query: ", query);
   const { data } = await API.get(`/course/preview/search?${query}`);
 
   return data;
 }
 
 export async function fetchStudentViewCourseDetailsRequest(courseId: string) {
-  const { data } = await API.get(`/course/preview/${courseId}`);
-
-  return data;
+  try {
+    const { data } = await API.get(`/course/preview/${courseId}`);
+  
+    return data;
+  } catch (error) {
+    const errData = (error as AxiosError).response?.data as { message: string };
+    console.error('Error Getting Course Details:', errData);
+    throw errData || {message: 'Cannot Get Course Details'};
+  }
 }
 
 //   export async function checkCoursePurchaseInfoService(courseId, studentId) {
@@ -266,25 +280,49 @@ export async function fetchStudentViewCourseDetailsRequest(courseId: string) {
 //   }
 
 export async function getCurrentCourseProgressRequest(courseId: string) {
-  const { data } = await API.get(`/progress/${courseId}`);
-
-  return data;
+  try {
+    const { data } = await API.get(`/progress/${courseId}`);
+  
+    return data;
+  } catch (error) {
+    const errData = (error as AxiosError).response?.data as { message: string };
+    console.error('Error Fetching Course Progress:', errData);
+    throw errData || {message: 'Cannot Fetch Course Progress'};
+  }
 }
 
 export async function markCourseAsCompletedRequest(courseId: string) {
-  const { data } = await API.get(`/progress/${courseId}/complete`);
-
-  return data;
+  try {
+    const { data } = await API.get(`/progress/${courseId}/complete`);
+  
+    return data;
+  } catch (error) {
+    const errData = (error as AxiosError).response?.data as { message: string };
+    console.error('Error Marking Course Progress Complete:', errData);
+    throw errData || {message: 'Cannot Mark Course Progress Complete'};
+  }
 }
 
 export async function markLectureAsViewedRequest(courseId: string, lectureId: string) {
-  const { data } = await API.get(`/progress/${courseId}/lecture/${lectureId}/view`);
-
-  return data;
+  try {
+    const { data } = await API.get(`/progress/${courseId}/lecture/${lectureId}/view`);
+  
+    return data;
+  } catch (error) {
+    const errData = (error as AxiosError).response?.data as { message: string };
+    console.error('Error Marking Lecture Complete:', errData);
+    throw errData || {message: 'Cannot Mark Lecture Complete'};
+  }
 }
 
 export async function resetCourseProgressRequest(courseId: string) {
-  const { data } = await API.get(`/progress/${courseId}/incomplete`);
-
-  return data;
+  try {
+    const { data } = await API.get(`/progress/${courseId}/incomplete`);
+  
+    return data;
+  } catch (error) {
+    const errData = (error as AxiosError).response?.data as { message: string };
+    console.error('Error Reseting Course Progress:', errData);
+    throw errData || {message: 'Cannot Reset Course Progress'};
+  }
 }
