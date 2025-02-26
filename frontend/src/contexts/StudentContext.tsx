@@ -10,7 +10,7 @@ interface StudentContextType {
     setStudentViewCourseDetails: any;
     currentCourseDetailsId: string;
     setCurrentCourseDetailsId: any;
-    studentBoughtCoursesList: any;
+    studentBoughtCoursesList: StudentCourseListType[];
     setStudentBoughtCoursesList: any;
     studentCurrentCourseProgress: any;
     setStudentCurrentCourseProgress: any;

@@ -3,7 +3,7 @@ import { LoginFormData, RegisterFormData } from "@/types/auth-form";
 import { CreateCourseFormData, LectureFormData, UpdateCourseFormData } from "@/types/course-form";
 import axios, { AxiosError } from "axios";
 
-// ---------------- User Requests -------------------
+// ---------------- Auth Requests -------------------
 export async function SignupRequest(formData : RegisterFormData) {
   try {
     const { data } = await API.post('/user/signup', formData);
@@ -236,41 +236,47 @@ export async function fetchStudentViewCourseDetailsRequest(courseId: string) {
   }
 }
 
-//   export async function checkCoursePurchaseInfoService(courseId, studentId) {
-//     const { data } = await axiosInstance.get(
-//       `/student/course/purchase-info/${courseId}/${studentId}`
-//     );
+// ---------------- Payment Requests -------------------
 
-//     return data;
-//   }
+export async function createCheckoutSessionRequest(courseId: string) {
+  try {
+    const { data } = await API.post(`/purchase/checkout`, {
+      courseId
+    });
 
-//   export async function createPaymentService(formData) {
-//     const { data } = await axiosInstance.post(`/student/order/create`, formData);
+    return data;
+  } catch (error) {
+    const errData = (error as AxiosError).response?.data as { message: string };
+    console.error('Error creating checkout session:', errData);
+    throw errData || {message: 'Cannot create checkout session'};
+  }
+}
 
-//     return data;
-//   }
+export async function verifyPaymentRequest(paymentDetails: {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}) {
+  try {
+    const { data } = await API.post(`/purchase/verify`, paymentDetails);
+    return data;
+  } catch (error) {
+    const errData = (error as AxiosError).response?.data as { message: string };
+    console.error('Error verifying payment:', errData);
+    throw errData || {message: 'Payment verification failed'};
+  }
+}
 
-//   export async function captureAndFinalizePaymentService(
-//     paymentId,
-//     payerId,
-//     orderId
-//   ) {
-//     const { data } = await axiosInstance.post(`/student/order/capture`, {
-//       paymentId,
-//       payerId,
-//       orderId,
-//     });
-
-//     return data;
-//   }
-
-//   export async function fetchStudentBoughtCoursesService(studentId) {
-//     const { data } = await axiosInstance.get(
-//       `/student/courses-bought/get/${studentId}`
-//     );
-
-//     return data;
-//   }
+export async function fetchStudentBoughtCoursesRequest() {
+  try {
+    const { data } = await API.get('/purchase/courses');
+    return data;
+  } catch (error) {
+    const errData = (error as AxiosError).response?.data as { message: string };
+    console.error('Error verifying payment:', errData);
+    throw errData || {message: 'Payment verification failed'};
+  }
+}
 
 export async function getCurrentCourseProgressRequest(courseId: string) {
   try {

@@ -1,5 +1,5 @@
 import {Outlet, useLocation} from 'react-router-dom';
-import { BookOpen, LayoutDashboard, MessageSquare, Settings, SearchIcon } from 'lucide-react';
+import { BookOpen, LayoutDashboard, Settings, SearchIcon } from 'lucide-react';
 import {Sidebar} from '../components/Sidebar';
 import {UserNav} from '../components/UserNav';
 
@@ -14,6 +14,11 @@ const studentNavItems = [
     title: "Courses",
     href: "/courses",
     icon: BookOpen,
+  },
+  {
+    title: "My Courses",
+    href: "/courses/purchased",
+    icon: LayoutDashboard,
   },
   {
     title: "Settings",

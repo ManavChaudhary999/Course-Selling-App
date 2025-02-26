@@ -19,6 +19,7 @@ import { useStudent } from "@/contexts/StudentContext"
 import { fetchStudentViewCourseDetailsRequest } from "@/services"
 import { LectureType } from "@/types"
 import LoadingSkeleton from "@/components/LoadingSkeleton";
+import { RazorpayButton } from "@/components/payment/razorpay-button";
 
 export default function CourseDetailsPage() {
     const params = useParams();
@@ -69,11 +70,7 @@ export default function CourseDetailsPage() {
     }
 
     function handleSetFreePreview(getCurrentVideoInfo: LectureType) {
-        console.log(getCurrentVideoInfo);
         setDisplayCurrentVideoFreePreview(getCurrentVideoInfo?.videoUrl);
-    }
-
-    async function handleCreatePayment() {
     }
 
     useEffect(() => {
@@ -171,9 +168,24 @@ export default function CourseDetailsPage() {
                                     ${studentViewCourseDetails?.price}
                                 </span>
                             </div>
-                            <Button onClick={handleCreatePayment} className="w-full">
-                                Buy Now
-                            </Button>
+                            <RazorpayButton
+                                courseId={currentCourseDetailsId}
+                                onSuccess={() => {
+                                    toast({
+                                        title: "Success",
+                                        description: "Course purchased successfully",
+                                        variant: "success"
+                                    })
+                                    // location.reload();
+                                }}
+                                onError={(error) => {
+                                    toast({
+                                        title: "Error",
+                                        description: error.message,
+                                        variant: "destructive"
+                                    })
+                                }}
+                            />
                         </CardContent>
                     </Card>
                 </aside>
