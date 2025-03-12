@@ -18,7 +18,7 @@ export async function GetFileUrl(key: string) {
         });
     
         const url = await getSignedUrl(s3Client, getObjectCommand, {
-            expiresIn: 60 * 60, // 1 hour
+            expiresIn: 60 * 60 * 24 * 7, // 7 days
         });
         return url;
     } catch (error) {
@@ -40,7 +40,7 @@ export async function GetFileUrls(fileKeys: string[],) {
             });
 
             const url = await getSignedUrl(s3Client, getObjectCommand, {
-                expiresIn: 60 * 60, // 1 hour
+                expiresIn: 60 * 60 * 24 * 7, // 7 days
             });
 
             urls[key] = url;
@@ -87,6 +87,16 @@ export async function GetThumbnailUploadUrl(courseId: string, fileName: string, 
 export async function GetLectureUploadUrl(courseId: string, lectureId: string, fileName: string, fileType: string) {
     const key = `lecture-${lectureId}-${fileName}`;
     if (!['video/mp4', 'video/webm', 'video/mkv'].includes(fileType)) throw new Error('Invalid file type');
+
+    return {
+        publicId: `${Date.now()}-${key}`,
+        url: await GetPresignedUploadUrl(key, fileType)
+    }
+}
+
+export async function GetProfileUploadUrl(userId: string, fileName: string, fileType: string) {
+    const key = `user-${userId}-profile-${fileName}`;
+    if (!['image/jpeg', 'image/png', 'image/gif'].includes(fileType)) throw new Error('Invalid file type');
 
     return {
         publicId: `${Date.now()}-${key}`,

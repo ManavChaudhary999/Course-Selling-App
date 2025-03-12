@@ -54,7 +54,6 @@ export function InstructorProvider({ children } : InstructorProviderProps) {
   const [loading, setLoading] = useState<boolean>(false);
 
 
-
   const value = {
       instructorCoursesList,
       setInstructorCoursesList,

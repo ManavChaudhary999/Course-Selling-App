@@ -9,6 +9,17 @@ export const userSignupSchema = z.object({
 
 export const userLoginSchema = userSignupSchema.pick({email: true, password: true, role: true});
 
+export const userProfileSchema = z.object({
+    name: z.string().min(3, {message: 'Name must be at least 3 characters long'}).optional(),
+    newPassword: z.string().optional(),
+    oldPassword: z.string().optional(),
+    profileImage: z.object({
+        name: z.string().optional(),
+        type: z.string().optional(),
+        size: z.number().optional(),
+    }).optional(),
+});
+
 export const courseCreateSchema = z.object({
     title: z.string({message: 'Title is required'}),
     description: z.string().optional(),

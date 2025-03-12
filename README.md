@@ -21,6 +21,7 @@ This is a simple LMS platform built with Nodejs and React.
 
 - [x] Sorting and Filtering of Courses
 - [x] Course Details Page
-- [ ] Purchase Course
-- [ ] Course Progress
-- [ ] User Profile Page
+- [x] Purchase Course
+- [x] Course Progress
+- [x] User Profile Page
+- [ ] Landing Page

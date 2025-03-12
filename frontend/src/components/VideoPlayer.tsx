@@ -17,7 +17,7 @@ interface VideoPlayerProps {
     width?: string;
     height?: string;
     url: string | undefined;
-    onProgressUpdate?: (progress: number) => void;
+    onProgressUpdate?: any;
     progressData?: any;
 }
 function VideoPlayer({ width = "100%", height = "100%", url, onProgressUpdate, progressData }: VideoPlayerProps): React.ReactElement {
@@ -131,8 +131,9 @@ function VideoPlayer({ width = "100%", height = "100%", url, onProgressUpdate, p
         ...progressData,
         progressValue: played,
       });
+      setPlaying(false);
     }
-  }, [played, onProgressUpdate, progressData]);
+  }, [played]);
 
   return (
     <div

@@ -1,15 +1,16 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '../types';
+import { UserType } from '../types';
 import { LoginFormData, RegisterFormData } from '@/types/auth-form';
-import { LoginRequest, LogoutRequest, ProfileRequest, SignupRequest } from '@/services';
-import LoadingSkeleton from '@/components/LoadingSkeleton';
+import { LoginRequest, ProfileRequest, SignupRequest } from '@/services';
+import { LoginSkeleton } from '@/components/LoadingSkeleton';
 
 interface AuthContextType {
-  user: User | null;
+  user: UserType | null;
   loading: boolean;
   signup: (registerData: RegisterFormData) => Promise<void>;
   login: (loginData: LoginFormData) => Promise<void>;
   logout: () => void;
+  refreshUser: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextType>({
   login: async () => {},
   signup: async () => {},
   logout: () => {},
+  refreshUser: () => {},
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -27,23 +29,22 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserType | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
-        const data = await ProfileRequest();
-        setUser(data.user);
-        setLoading(false);
-      } catch (error) {
-        logout();
-      }
-    };
-    
-    fetchUser();
+  const fetchUser = async () => {
+    try {
+      setLoading(true);
+      const data = await ProfileRequest();
+      setUser(data.user);
+      setLoading(false);
+    } catch (error) {
+      logout();
+    }
+  };
 
+  useEffect(() => {
+    fetchUser();
   }, []);
 
   const signup = async (registerData: RegisterFormData) => {
@@ -54,7 +55,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setUser(data.user);
     }
     catch (error) {
-      console.log(error);
       setLoading(false);
       throw error;
     }
@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setLoading(true);
       sessionStorage.removeItem('token');
       setUser(null);
-      const data = await LogoutRequest();
+      // const data = await LogoutRequest();
     } catch (error) {
       console.log(error);
       setLoading(false);
@@ -89,18 +89,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setLoading(false);
   }
 
+  const refreshUser = () => {
+    fetchUser();
+  }
+
   const value = {
     user,
     loading,
     login,
     signup,
-    logout
+    logout,
+    refreshUser
   };
 
   return (
     <AuthContext.Provider value={value}>
       {loading ? (
-        <LoadingSkeleton />
+        <LoginSkeleton />
       ) : children}
     </AuthContext.Provider>
   );

@@ -7,11 +7,12 @@ export interface ControlItemType {
   options?: any[];
 }
 
-export interface User {
+export interface UserType {
   id: string;
   email: string;
   name: string;
   role: 'INSTRUCTOR' | 'STUDENT';
+  profileUrl?: string;
 }
 
 export interface InstructorCourseType {
@@ -69,7 +70,7 @@ export interface StudentCourseDetailsType {
 
 interface Enrollment {
   id: string;
-  user: User;
+  user: UserType;
 }
 
 export interface LectureType {
@@ -82,10 +83,17 @@ export interface LectureType {
   updatedAt: string;
 }
 
-export interface Progress {
+export interface CourseProgressType {
   id: string;
-  enrollment_id: string;
-  lesson_number: number;
+  courseId: string;
+  userId: string;
   completed: boolean;
-  completed_at?: string;
+  lectureProgress: LectureProgress[];
+}
+
+export interface LectureProgress {
+  id: string;
+  lectureId: string;
+  updatedAt: string;
+  viewed: boolean;
 }

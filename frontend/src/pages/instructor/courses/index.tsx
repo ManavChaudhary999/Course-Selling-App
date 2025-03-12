@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Delete, Edit } from "lucide-react";
+import { Delete, Edit, IndianRupee } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -105,7 +105,10 @@ function InstructorCourses() {
                       </TableCell>
                       <TableCell>{course.enrollments?.length}</TableCell>
                       <TableCell>
-                        ${course.enrollments?.length * course.price}
+                        <p className="flex items-center gap-1">
+                          <IndianRupee className="w-3.5 h-3.5" />
+                          {course.enrollments?.length * course.price}
+                        </p>
                       </TableCell>
                       <TableCell className="text-right">
                         <Button

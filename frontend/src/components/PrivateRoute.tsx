@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from 'react';
+import { ReactNode } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -10,10 +10,6 @@ export function PrivateRoute({ children}: PrivateRouteProps) {
   const location = useLocation();
 
   const { user } = useAuth();
-
-  useEffect(() => {
-  }, [user]);
-
   
   if (!user) return <Navigate to="/login" />;
   if(user.role === 'STUDENT' && location.pathname.includes('instructor')) return <Navigate to="/" />;

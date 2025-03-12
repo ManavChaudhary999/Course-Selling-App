@@ -7,3 +7,10 @@ export interface LoginFormData {
 export interface RegisterFormData extends LoginFormData {
   name: string;
 }
+
+export interface ProfileFormData {
+  name?: string;
+  oldPassword?: string;
+  newPassword?: string;
+  profileImage?: File;
+}

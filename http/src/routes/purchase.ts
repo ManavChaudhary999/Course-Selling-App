@@ -4,6 +4,7 @@ import db from "../db";
 import { AuthMiddleware } from "../middleware/auth";
 import { razorpay } from "../utils/payment";
 import crypto from "crypto";
+import { GetFileUrls } from "../utils/aws-config";
 
 const purchaseRouter = Router();
 
@@ -45,11 +46,22 @@ purchaseRouter.post("/checkout", AuthMiddleware, async (req: Request, res: Respo
             }
         });
 
-        if(existingPurchase) {
+        if(existingPurchase?.status === 'COMPLETED') {
             res.status(400).json({
                 message: "Course already purchased",
             });
             return;
+        }
+
+        if(existingPurchase) {
+            await db.purchase.delete({
+                where:{
+                    userId_courseId: {
+                        userId: userId || '',
+                        courseId: course.id
+                    }
+                }
+            });
         }
 
         const options = {
@@ -75,6 +87,7 @@ purchaseRouter.post("/checkout", AuthMiddleware, async (req: Request, res: Respo
             course,
         });
     } catch (error) {
+        console.log(error);
         res.status(500).json({
             //@ts-ignore
             message: error?.description || "Internal Server Error",
@@ -115,7 +128,11 @@ purchaseRouter.post("/verify", AuthMiddleware, async (req, res) => {
                 transactionId: razorpay_order_id,
             },
             include: {
-                course: true,
+                course: {
+                    include: {
+                        lectures: true
+                    }
+                },
             }
         });
 
@@ -142,6 +159,12 @@ purchaseRouter.post("/verify", AuthMiddleware, async (req, res) => {
                 data: {
                     userId: purchase.userId,
                     courseId: purchase.courseId,
+                    lectureProgress: {
+                        create: purchase.course.lectures.map((lecture) => ({
+                            lectureId: lecture.id,
+                            viewed: false,
+                        }))
+                    }
                 }
             });
     
@@ -181,17 +204,51 @@ purchaseRouter.get("/courses", AuthMiddleware, async (req, res) => {
     try {
         const userId = req.userId;
         
-        const purchases = await db.purchase.findMany({
+        const enrolledCourses = await db.enrollment.findMany({
             where: {
-                userId: userId || '',
-                status: 'COMPLETED',
+                userId: userId,
             },
             include: {
                 course: true,
             }
         });
 
-        const courses = purchases.map((purchase) => purchase.course);
+        const courses = enrolledCourses.map((purchase) => purchase.course);
+
+        const imageKeysToFetch: string[] = [];
+        const courseIdMap: Record<string, string> = {};
+        const now = new Date();
+        
+        for(const course of courses) {
+            if(!course.imageUrl || !course.imageUrlExpiresAt || course.imageUrlExpiresAt < now) {
+                if(course.imagePublicId) {
+                    imageKeysToFetch.push(course.imagePublicId);
+                    courseIdMap[course.imagePublicId] = course.id;
+                }
+            }
+        }
+
+        const imageUrls = await GetFileUrls(imageKeysToFetch);
+
+        await Promise.all(
+            Object.entries(imageUrls).map(async ([publicId, url]) => {
+                await db.course.update({
+                    where: {
+                        id: courseIdMap[publicId]
+                    },
+                    data: {
+                        imageUrl: url,
+                        imageUrlExpiresAt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
+                    }
+                })
+            })
+        );
+
+        courses.forEach(course => {
+            if(imageUrls[course.imagePublicId || ""]) {
+                course.imageUrl = imageUrls[course.imagePublicId || ""];
+            }
+        });
 
         res.status(200).json({
             message: "Purchased Courses",
@@ -200,6 +257,29 @@ purchaseRouter.get("/courses", AuthMiddleware, async (req, res) => {
     } catch (error) {
         res.status(500).json({
             message: error instanceof Error? error.message : "Internal Server Error",
+        });
+    }
+});
+
+purchaseRouter.get("/courses/:courseId", AuthMiddleware, async (req, res) => {
+    try {
+        const userId = req.userId;
+        const courseId = req.params.courseId;
+
+        const enrolledCourse = await db.enrollment.findFirst({
+            where: {
+                userId: userId,
+                courseId: courseId,
+            }
+        });
+
+        res.status(200).json({
+            message: "Course Enrollment Status",
+            isEnrolled: enrolledCourse ? true : false,
+        });
+    } catch (error) {
+        res.status(500).json({
+            message: error instanceof Error ? error.message : "Internal Server Error",
         });
     }
 });

@@ -38,6 +38,11 @@ const instructorNavItems = [
     href: "/instructor/courses",
     icon: BookOpen,
   },
+  {
+    title: "Settings",
+    href: "/instructor/settings",
+    icon: Settings,
+  },
 ]
 
 export default function MainLayout() {

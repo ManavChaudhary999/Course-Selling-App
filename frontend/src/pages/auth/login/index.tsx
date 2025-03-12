@@ -61,7 +61,7 @@ export default function Login() {
   }, [user]);
 
   return (
-    <div className="container flex h-screen w-screen flex-col items-center justify-center">
+    <div className="flex h-screen flex-col items-center justify-center">
       <Card className="w-[400px]">
         <CardHeader className="text-center">
           <CardTitle>Welcome back</CardTitle>

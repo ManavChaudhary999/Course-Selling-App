@@ -87,7 +87,7 @@ model Lecture {
 model LectureProgress {
   id                String   @id @default(uuid())
   lectureId         String
-  lecture           Lecture?  @relation(fields: [lectureId], references: [id], onDelete: Cascade)
+  lecture           Lecture  @relation(fields: [lectureId], references: [id], onDelete: Cascade)
   courseProgressId  String
   courseProgress    CourseProgress @relation(fields: [courseProgressId], references: [id], onDelete: Cascade)
   viewed            Boolean  @default(false)

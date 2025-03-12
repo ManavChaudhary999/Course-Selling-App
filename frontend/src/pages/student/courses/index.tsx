@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowUpDownIcon } from "lucide-react";
+import { ArrowUpDownIcon, IndianRupee } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,13 +14,13 @@ import {
 import { Label } from "@/components/ui/label";
 
 import { courseFilterOptionType, filterOptions, sortOptions } from "@/config";
-import { useAuth } from "@/contexts/AuthContext";
 import { useStudent } from "@/contexts/StudentContext";
 import {
+  checkCoursePurchaseStatusRequest,
   fetchStudentViewCourseListRequest,
 } from "@/services";
 import { useToast } from "@/hooks/use-toast";
-import LoadingSkeleton from "@/components/LoadingSkeleton";
+import { CourseCardSkeleton } from "@/components/LoadingSkeleton";
 
 function createSearchParamsHelper(filterParams: any) {
   const queryParams: any[] = [];
@@ -28,7 +28,7 @@ function createSearchParamsHelper(filterParams: any) {
   for (const [key, value] of Object.entries(filterParams)) {
     if (Array.isArray(value) && value.length > 0) {
       value.forEach(item => {
-        queryParams.push(`${key}[]=${encodeURIComponent(item)}`);
+        queryParams.push(`${key}=${encodeURIComponent(item)}`);
       });
     }
   }
@@ -52,7 +52,6 @@ function StudentViewCoursesPage() {
   } = useStudent();
 
   const navigate = useNavigate();
-  const { user } = useAuth();
   const {toast} = useToast();
 
   function handleFilterOnChange(getSectionId: string, getCurrentOption: courseFilterOptionType) {
@@ -76,7 +75,7 @@ function StudentViewCoursesPage() {
     }
 
     setFilters(cpyFilters);
-    // sessionStorage.setItem("filters", JSON.stringify(cpyFilters));
+    sessionStorage.setItem("filters", JSON.stringify(cpyFilters));
   }
 
   async function fetchAllStudentViewCourses(filters: any, sort: any) {
@@ -98,7 +97,6 @@ function StudentViewCoursesPage() {
     try {
         setLoadingState(true);
         const data = await fetchStudentViewCourseListRequest(query.toString());
-        console.log(data?.courses);
         
         const newCoursesList = [];
         for(const course of data?.courses) {
@@ -121,20 +119,12 @@ function StudentViewCoursesPage() {
   }
 
   async function handleCourseNavigate(getCurrentCourseId: string) {
-    console.log("Course Details: ", getCurrentCourseId);
-    navigate(`/course/details/${getCurrentCourseId}`);
-    // const response = await checkCoursePurchaseInfoService(
-    //   getCurrentCourseId,
-    //   auth?.user?._id
-    // );
-
-    // if (response?.success) {
-    //   if (response?.data) {
-    //     navigate(`/course-progress/${getCurrentCourseId}`);
-    //   } else {
-    //     navigate(`/course/details/${getCurrentCourseId}`);
-    //   }
-    // }
+    const coursePurchaseStatus = await checkCoursePurchaseStatusRequest(getCurrentCourseId);
+    
+    coursePurchaseStatus?.isEnrolled ?
+      navigate(`/course/progress/${getCurrentCourseId}`)
+      :
+      navigate(`/course/details/${getCurrentCourseId}`);
   }
 
   useEffect(() => {
@@ -147,11 +137,11 @@ function StudentViewCoursesPage() {
       fetchAllStudentViewCourses(filters, sort);
   }, [filters, sort]);
 
-  // useEffect(() => {
-  //   return () => {
-  //     sessionStorage.removeItem("filters");
-  //   };
-  // }, []);
+  useEffect(() => {
+    return () => {
+      sessionStorage.removeItem("filters");
+    };
+  }, []);
 
   return (
     <div className="container mx-auto p-4">
@@ -218,22 +208,23 @@ function StudentViewCoursesPage() {
               {studentViewCoursesList.length} Results
             </span>
           </div>
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {studentViewCoursesList?.length > 0 ? (
               studentViewCoursesList.map((courseItem) => (
                 <Card
                   onClick={() => handleCourseNavigate(courseItem.id)}
-                  className="cursor-pointer"
+                  className="cursor-pointer h-full"
                   key={courseItem.id}
                 >
-                  <CardContent className="flex gap-4 p-4">
-                    <div className="w-48 h-32 flex-shrink-0">
+                  <CardContent className="flex flex-col p-4 h-full">
+                    <div className="w-full aspect-video mb-4">
                       <img
                         src={courseItem.imageUrl}
-                        className="w-ful h-full object-cover"
+                        className="w-full h-full object-cover rounded-md"
+                        alt={courseItem.title}
                       />
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 flex flex-col">
                       <CardTitle className="text-xl mb-2">
                         {courseItem.title}
                       </CardTitle>
@@ -250,15 +241,18 @@ function StudentViewCoursesPage() {
                             : "Lectures"
                         } - ${courseItem?.level.toUpperCase()} Level`}
                       </p>
-                      <p className="font-bold text-lg">
-                        ${courseItem.price}
+                      <p className="flex items-center font-bold text-lg mt-auto">
+                        <IndianRupee className="h-4 w-4 mt-0.5" />
+                        {courseItem.price}
                       </p>
                     </div>
                   </CardContent>
                 </Card>
               ))
             ) : loadingState ? (
-              <LoadingSkeleton />
+              [...Array(6)].map((_, index) => (
+                <CourseCardSkeleton key={index} />
+              ))
             ) : (
               <h1 className="font-extrabold text-4xl">No Courses Found</h1>
             )}

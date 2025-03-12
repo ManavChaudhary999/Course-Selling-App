@@ -8,7 +8,6 @@ import Login from './pages/auth/login';
 import Register from './pages/auth/register';
 
 import StudentHomePage from './pages/student';
-import UserDashboard from './pages/student/dashboard';
 import UserProfileSettings from './pages/student/profileSettings';
 
 import InstructorDashboard from './pages/instructor';
@@ -17,6 +16,7 @@ import CreateCoursePage from './pages/instructor/create-course';
 
 import CoursesPage from './pages/student/courses';
 import CourseDetailsPage from './pages/student/course-details';
+import CourseProgressPage from './pages/student/course-progress';
 import PurchasedCourses from './pages/student/purchased-courses';
 
 function App() {
@@ -32,6 +32,7 @@ function App() {
           <Route path='courses' element={<CoursesPage />} />
           <Route path='courses/purchased' element={<PurchasedCourses />} />
           <Route path='course/details/:courseId' element={<CourseDetailsPage />} />
+          <Route path='course/progress/:courseId' element={<CourseProgressPage />} />
           <Route path='settings' element={<UserProfileSettings />} />
         </Route>
           {/* Instructor Routes */}
@@ -40,6 +41,7 @@ function App() {
           <Route path='courses' element={<InstructorCourses />} />
           <Route path='create-course' element={<CreateCoursePage />} />
           <Route path='edit-course/:courseId' element={<CreateCoursePage />} />
+          <Route path='settings' element={<UserProfileSettings />} />
         </Route>
         <Route path='*' element={<NotFound />} />
       </Routes>

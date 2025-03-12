@@ -11,16 +11,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from "react-router-dom";
 
 export function UserNav() {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="/avatars/01.png" alt="@username" />
+            <AvatarImage src={user?.profileUrl}alt="@username" />
             <AvatarFallback>{user?.name?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
           </Avatar>
         </Button>
@@ -36,8 +38,8 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>Profile</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
+          {/* <DropdownMenuItem>Profile</DropdownMenuItem> */}
+          <DropdownMenuItem onClick={()=> navigate('/settings')}>Settings</DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={logout} className="font-semibold"><LogOut className="mr-2 h-6 w-6" />Log Out</DropdownMenuItem>

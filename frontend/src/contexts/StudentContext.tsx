@@ -1,4 +1,4 @@
-import { StudentCourseDetailsType, StudentCourseListType } from "@/types";
+import { CourseProgressType, StudentCourseDetailsType, StudentCourseListType } from "@/types";
 import { createContext, ReactNode, useContext, useState } from "react";
 
 interface StudentContextType {
@@ -12,7 +12,10 @@ interface StudentContextType {
     setCurrentCourseDetailsId: any;
     studentBoughtCoursesList: StudentCourseListType[];
     setStudentBoughtCoursesList: any;
-    studentCurrentCourseProgress: any;
+    studentCurrentCourseProgress: {
+      courseDetails: StudentCourseDetailsType;
+      courseProgress: CourseProgressType;
+    } | null;
     setStudentCurrentCourseProgress: any;
 }
 
@@ -27,7 +30,7 @@ export const StudentContext = createContext<StudentContextType>({
     setCurrentCourseDetailsId: () => {},
     studentBoughtCoursesList: [],
     setStudentBoughtCoursesList: () => {},
-    studentCurrentCourseProgress: {},
+    studentCurrentCourseProgress: null,
     setStudentCurrentCourseProgress: () => {},
 });
 
@@ -42,7 +45,7 @@ export function StudentProvider({ children }: StudentProviderProps) {
   const [studentViewCourseDetails, setStudentViewCourseDetails] = useState(null);
   const [currentCourseDetailsId, setCurrentCourseDetailsId] = useState('');
   const [studentBoughtCoursesList, setStudentBoughtCoursesList] = useState([]);
-  const [studentCurrentCourseProgress, setStudentCurrentCourseProgress] = useState({});
+  const [studentCurrentCourseProgress, setStudentCurrentCourseProgress] = useState(null);
 
   const value = {
       studentViewCoursesList,

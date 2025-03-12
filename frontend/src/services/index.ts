@@ -1,5 +1,5 @@
 import API from "@/api/axios";
-import { LoginFormData, RegisterFormData } from "@/types/auth-form";
+import { LoginFormData, ProfileFormData, RegisterFormData } from "@/types/auth-form";
 import { CreateCourseFormData, LectureFormData, UpdateCourseFormData } from "@/types/course-form";
 import axios, { AxiosError } from "axios";
 
@@ -49,6 +49,40 @@ export async function ProfileRequest() {
     const errData = (error as AxiosError).response?.data as { message: string };
     console.error('Error fetching profile:', errData);
     throw errData || {message: 'Profile fetch failed'};
+  }
+}
+
+export async function ProfileUpdateRequest(formData: ProfileFormData, onProgressCallback: (progress: number) => void) {
+  try {
+    const { data } = await API.post('/user/profile', {
+      ...formData,
+      profileImage: {
+        name: formData?.profileImage?.name,
+        size: formData?.profileImage?.size,
+        type: formData?.profileImage?.type
+      }
+    });
+
+    if(data?.presignedUrl) {
+      await axios.put(data.presignedUrl, formData.profileImage, {
+        headers: {
+          "Content-Type": formData?.profileImage?.type
+        },
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total!
+          );
+          onProgressCallback(percentCompleted);
+        }
+      });
+    }
+
+    
+    return data;
+  } catch (error) {
+    const errData = (error as AxiosError).response?.data as { message: string };
+    console.error('Error fetching profile:', errData);
+    throw errData || {message: 'Profile Update failed'};
   }
 }
 
@@ -278,6 +312,18 @@ export async function fetchStudentBoughtCoursesRequest() {
   }
 }
 
+export async function checkCoursePurchaseStatusRequest(courseId: string) {
+  try {
+    const { data } = await API.get(`/purchase/courses/${courseId}`);
+    return data;
+  } catch (error) {
+    const errData = (error as AxiosError).response?.data as { message: string };
+    console.error('Error verifying payment:', errData);
+  }
+}
+
+// ---------------- Course Progress Requests -------------------
+
 export async function getCurrentCourseProgressRequest(courseId: string) {
   try {
     const { data } = await API.get(`/progress/${courseId}`);
@@ -292,7 +338,7 @@ export async function getCurrentCourseProgressRequest(courseId: string) {
 
 export async function markCourseAsCompletedRequest(courseId: string) {
   try {
-    const { data } = await API.get(`/progress/${courseId}/complete`);
+    const { data } = await API.post(`/progress/${courseId}/complete`);
   
     return data;
   } catch (error) {
@@ -302,9 +348,9 @@ export async function markCourseAsCompletedRequest(courseId: string) {
   }
 }
 
-export async function markLectureAsViewedRequest(courseId: string, lectureId: string) {
+export async function markLectureAsViewedRequest(courseProgressId: string, lectureId: string) {
   try {
-    const { data } = await API.get(`/progress/${courseId}/lecture/${lectureId}/view`);
+    const { data } = await API.post(`/progress/${courseProgressId}/lecture/${lectureId}/view`);
   
     return data;
   } catch (error) {
@@ -316,7 +362,7 @@ export async function markLectureAsViewedRequest(courseId: string, lectureId: st
 
 export async function resetCourseProgressRequest(courseId: string) {
   try {
-    const { data } = await API.get(`/progress/${courseId}/incomplete`);
+    const { data } = await API.post(`/progress/${courseId}/incomplete`);
   
     return data;
   } catch (error) {

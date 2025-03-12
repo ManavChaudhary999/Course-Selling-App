@@ -8,11 +8,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
 import { IndianRupee, Users } from "lucide-react";
 import { useInstructor } from "@/contexts/InstructorContext";
 import { useToast } from "@/hooks/use-toast";
 import { fetchInstructorCourseListRequest } from "@/services";
+import { InstructorDashboardSkeleton } from "@/components/LoadingSkeleton";
 
 function InstructorDashboard() {
   const { toast } = useToast();
@@ -23,11 +23,11 @@ function InstructorDashboard() {
       setLoading(true);
       const data = await fetchInstructorCourseListRequest();
       setInstructorCoursesList(data.courses);
+      setLoading(false);
     } catch (error) {
       setLoading(false);
       throw error;
     }
-    setLoading(false);
   }
 
   useEffect(() => {
@@ -90,13 +90,7 @@ function InstructorDashboard() {
   ];
 
   if(loading) {
-    <div className="h-screen flex flex-col justify-center items-center space-y-3">
-      <Skeleton className="h-[125px] w-[250px] rounded-xl" />
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-[250px]" />
-        <Skeleton className="h-4 w-[200px]" />
-      </div>
-    </div>
+    <InstructorDashboardSkeleton />
   }
 
   return (

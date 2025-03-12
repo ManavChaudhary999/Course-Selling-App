@@ -1,7 +1,7 @@
-import { useLocation, useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { useEffect, useState } from "react"
 
-import { Lock, PlayCircle } from "lucide-react";
+import { IndianRupee, Lock, PlayCircle } from "lucide-react";
 import VideoPlayer from "@/components/VideoPlayer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
@@ -16,15 +16,15 @@ import {
 
 import { useToast } from "@/hooks/use-toast"
 import { useStudent } from "@/contexts/StudentContext"
-import { fetchStudentViewCourseDetailsRequest } from "@/services"
+import { checkCoursePurchaseStatusRequest, fetchStudentViewCourseDetailsRequest } from "@/services"
 import { LectureType } from "@/types"
-import LoadingSkeleton from "@/components/LoadingSkeleton";
-import { RazorpayButton } from "@/components/payment/razorpay-button";
+import { CourseDetailsSkeleton } from "@/components/LoadingSkeleton";
+import { RazorpayButton } from "@/components/RazorpayButton";
 
 export default function CourseDetailsPage() {
     const params = useParams();
     const { toast } = useToast();
-    const location = useLocation();
+    const navigate = useNavigate();
 
     const {
         studentViewCourseDetails,
@@ -39,24 +39,19 @@ export default function CourseDetailsPage() {
     const [showFreePreviewDialog, setShowFreePreviewDialog] = useState(false);
 
     async function fetchStudentViewCourseDetails() {
-        // const checkCoursePurchaseInfoResponse =
-        //   await checkCoursePurchaseInfoService(
-        //     currentCourseDetailsId,
-        //     auth?.user._id
-        //   );
-    
-        // if (
-        //   checkCoursePurchaseInfoResponse?.success &&
-        //   checkCoursePurchaseInfoResponse?.data
-        // ) {
-        //   navigate(`/course-progress/${currentCourseDetailsId}`);
-        //   return;
-        // }
-
+        
         try {
             setLoadingState(true);
+            const coursePurchaseStatus = await checkCoursePurchaseStatusRequest(currentCourseDetailsId);
+            
+            if (coursePurchaseStatus?.isEnrolled) {
+                setLoadingState(false);
+                navigate(`/course/progress/${currentCourseDetailsId}`);
+                return;
+            }
+            
+            setLoadingState(true);
             const data = await fetchStudentViewCourseDetailsRequest(currentCourseDetailsId);
-            console.log(data);
             setStudentViewCourseDetails(data?.course);
             setLoadingState(false);
         } catch (error) {
@@ -79,7 +74,6 @@ export default function CourseDetailsPage() {
         return () => {
             setStudentViewCourseDetails(null);
             setCurrentCourseDetailsId(null);
-            // setCoursePurchaseId(null);
         }
     }, [params?.courseId]);
 
@@ -91,7 +85,7 @@ export default function CourseDetailsPage() {
         if (displayCurrentVideoFreePreview) setShowFreePreviewDialog(true);
     }, [displayCurrentVideoFreePreview]);
 
-    if (loadingState) return <LoadingSkeleton />;
+    if (loadingState) return <CourseDetailsSkeleton />;
 
     const getIndexOfFreePreviewUrl = studentViewCourseDetails?.lectures?.findIndex((item) => item.preview) ?? -1;
 
@@ -163,9 +157,10 @@ export default function CourseDetailsPage() {
                                     height="200px"
                                 />
                             </div>
-                            <div className="mb-4">
+                            <div className="flex items-center gap-1 mb-4">
+                                <IndianRupee className="text-3xl mt-1 font-bold" />
                                 <span className="text-3xl font-bold">
-                                    ${studentViewCourseDetails?.price}
+                                    {studentViewCourseDetails?.price}
                                 </span>
                             </div>
                             <RazorpayButton
@@ -176,7 +171,7 @@ export default function CourseDetailsPage() {
                                         description: "Course purchased successfully",
                                         variant: "success"
                                     })
-                                    // location.reload();
+                                    location.reload();
                                 }}
                                 onError={(error) => {
                                     toast({

@@ -21,7 +21,7 @@ export function RazorpayButton({ courseId, onSuccess, onError }: RazorpayButtonP
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const [loading, setLoading] = useState(false);
+  const [ loading, setLoading ] = useState(false);
 
   const handlePayment = async () => {
     try {
@@ -48,6 +48,7 @@ export function RazorpayButton({ courseId, onSuccess, onError }: RazorpayButtonP
               description: "Your course purchase was successful!",
             });
 
+            setLoading(false);
             onSuccess?.();
           } catch (error) {
             toast({
@@ -55,6 +56,7 @@ export function RazorpayButton({ courseId, onSuccess, onError }: RazorpayButtonP
               title: (error as Error).message,
               description: "There was an error verifying your payment.",
             });
+            setLoading(false);
             onError?.(error);
           }
         },
@@ -65,6 +67,16 @@ export function RazorpayButton({ courseId, onSuccess, onError }: RazorpayButtonP
         theme: {
           color: "#000000",
         },
+        modal: {
+          ondismiss: () => {
+            toast({
+              title: "Payment Cancelled",
+              description: "You closed the payment window.",
+              variant: "destructive",
+            });
+            setLoading(false);
+          }
+        }
       };
 
       const razorpay = new window.Razorpay(options);
@@ -76,7 +88,6 @@ export function RazorpayButton({ courseId, onSuccess, onError }: RazorpayButtonP
         description: "There was an error processing your payment.",
       });
       onError?.(error);
-    } finally {
       setLoading(false);
     }
   };

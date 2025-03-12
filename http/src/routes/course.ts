@@ -9,8 +9,6 @@ const courseRouter = Router();
 
 courseRouter.get('/preview/search', async (req: Request, res: Response) => {   
     try {
-        console.log("Fectching Courses");
-        console.log("Query", req.query);
         const { query = "", category = [], level=[], sortBy = "" } = req.query;
         const q: string = query as string;
         const c: any = Array.isArray(category) ? category : [category].filter(Boolean);
@@ -60,7 +58,7 @@ courseRouter.get('/preview/search', async (req: Request, res: Response) => {
                     },
                     data: {
                         imageUrl: url,
-                        imageUrlExpiresAt: new Date(now.getTime() + 60 * 60 * 1000),
+                        imageUrlExpiresAt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
                     }
                 })
             })
@@ -138,7 +136,7 @@ courseRouter.get('/preview/:id', async (req: Request, res: Response) => {
                     },
                     data: {
                         videoUrl: url,
-                        videoUrlExpiresAt: new Date(now.getTime() + 60 * 60 * 1000),
+                        videoUrlExpiresAt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
                     }
                 })
             })
@@ -222,7 +220,7 @@ courseRouter.get('/', AuthMiddleware, async (req: Request, res: Response) => {
                     },
                     data: {
                         imageUrl: url,
-                        imageUrlExpiresAt: new Date(now.getTime() + 60 * 60 * 1000),
+                        imageUrlExpiresAt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
                     }
                 })
             })
@@ -354,7 +352,7 @@ courseRouter.get('/:id', AuthMiddleware, async (req: Request, res: Response) => 
                     },
                     data: {
                         videoUrl: url,
-                        videoUrlExpiresAt: new Date(now.getTime() + 60 * 60 * 1000),
+                        videoUrlExpiresAt: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // 7 days
                     }
                 })
             })
@@ -591,8 +589,6 @@ courseRouter.put('/:id/lecture/:lectureId', AuthMiddleware, async (req: Request,
         if(video?.name && video?.type){
             const {publicId, url} = await GetLectureUploadUrl(courseId, lectureId, video.name, video.type);
             
-            console.log(publicId, url);
-
             const lecture = await db.lecture.update({
                 where: {
                     id: lectureId,

@@ -1,56 +1,68 @@
 import { courseCategories } from "@/config";
 import { Button } from "@/components/ui/button";
-import { useContext, useEffect } from "react";
-// import { StudentContext } from "@/context/student-context";
-// import {
-//   checkCoursePurchaseInfoService,
-//   fetchStudentViewCourseListService,
-// } from "@/services";
-import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
+
 import { useNavigate } from "react-router-dom";
+import { useStudent } from "@/contexts/StudentContext";
+import { checkCoursePurchaseStatusRequest, fetchStudentViewCourseListRequest } from "@/services";
+import { useToast } from "@/hooks/use-toast";
+import { CourseCardSkeleton } from "@/components/LoadingSkeleton";
 
 function StudentHomePage() {
-//   const { studentViewCoursesList, setStudentViewCoursesList } =
-//     useContext(StudentContext);
-const studentViewCoursesList: any = [];
-  const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  const { loadingState, setLoadingState, studentViewCoursesList, setStudentViewCoursesList } = useStudent();
 
-//   function handleNavigateToCoursesPage(getCurrentId) {
-//     console.log(getCurrentId);
-//     sessionStorage.removeItem("filters");
-//     const currentFilter = {
-//       category: [getCurrentId],
-//     };
+  function handleNavigateToCoursesPage(getCurrentId: string) {
+    console.log(getCurrentId);
+    sessionStorage.removeItem("filters");
+    const currentFilter = {
+      category: [getCurrentId],
+    };
 
-//     sessionStorage.setItem("filters", JSON.stringify(currentFilter));
+    sessionStorage.setItem("filters", JSON.stringify(currentFilter));
 
-//     navigate("/courses");
-//   }
+    navigate("/courses");
+  }
 
-//   async function fetchAllStudentViewCourses() {
-//     const response = await fetchStudentViewCourseListService();
-//     if (response?.success) setStudentViewCoursesList(response?.data);
-//   }
+  async function fetchAllStudentViewCourses() {
+    try {
+      setLoadingState(true);
+      const data = await fetchStudentViewCourseListRequest("");
+      
+      const newCoursesList = [];
+      for(const course of data?.courses) {
+        newCoursesList.push({
+          ...course,
+          lectures: course._count?.lectures,
+        });
+      }
 
-//   async function handleCourseNavigate(getCurrentCourseId) {
-//     const response = await checkCoursePurchaseInfoService(
-//       getCurrentCourseId,
-//       auth?.user?._id
-//     );
+      setStudentViewCoursesList(newCoursesList);
+      setLoadingState(false);
+  } catch (error) {
+      toast({
+          title: "Error",
+          description: (error as Error).message,
+          variant: "destructive"
+      })
+      setLoadingState(false);
+  }
+  }
 
-//     if (response?.success) {
-//       if (response?.data) {
-//         navigate(`/course-progress/${getCurrentCourseId}`);
-//       } else {
-//         navigate(`/course/details/${getCurrentCourseId}`);
-//       }
-//     }
-//   }
+  async function handleCourseNavigate(getCurrentCourseId: string) {
+    const coursePurchaseStatus = await checkCoursePurchaseStatusRequest(getCurrentCourseId);
+    
+    coursePurchaseStatus?.isEnrolled ?
+      navigate(`/course/progress/${getCurrentCourseId}`)
+      :
+      navigate(`/course/details/${getCurrentCourseId}`);
+  }
 
-//   useEffect(() => {
-//     fetchAllStudentViewCourses();
-//   }, []);
+  useEffect(() => {
+    fetchAllStudentViewCourses();
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -78,7 +90,7 @@ const studentViewCoursesList: any = [];
               className="justify-start"
               variant="outline"
               key={categoryItem.id}
-            //   onClick={() => handleNavigateToCoursesPage(categoryItem.id)}
+              onClick={() => handleNavigateToCoursesPage(categoryItem.id)}
             >
               {categoryItem.label}
             </Button>
@@ -89,13 +101,13 @@ const studentViewCoursesList: any = [];
         <h2 className="text-2xl font-bold mb-6">Featured COourses</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {studentViewCoursesList?.length > 0 ? (
-            studentViewCoursesList.map((courseItem: any) => (
+            studentViewCoursesList.map((courseItem) => (
               <div
-                // onClick={() => handleCourseNavigate(courseItem?._id)}
+                onClick={() => handleCourseNavigate(courseItem?.id)}
                 className="border rounded-lg overflow-hidden shadow cursor-pointer"
               >
                 <img
-                  src={courseItem?.image}
+                  src={courseItem?.imageUrl}
                   width={300}
                   height={150}
                   className="w-full h-40 object-cover"
@@ -103,16 +115,20 @@ const studentViewCoursesList: any = [];
                 <div className="p-4">
                   <h3 className="font-bold mb-2">{courseItem?.title}</h3>
                   <p className="text-sm text-gray-700 mb-2">
-                    {courseItem?.instructorName}
+                    {courseItem?.Instructor?.name}
                   </p>
                   <p className="font-bold text-[16px]">
-                    ${courseItem?.pricing}
+                    ${courseItem?.price}
                   </p>
                 </div>
               </div>
             ))
+          ) : loadingState ? (
+            [...Array(6)].map((_, index) => (
+              <CourseCardSkeleton key={index} />
+            ))
           ) : (
-            <h1>No Courses Found</h1>
+            <h1 className="font-extrabold text-4xl">No Courses Found</h1>
           )}
         </div>
       </section>

@@ -1,13 +1,12 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { PlayCircle, Watch } from "lucide-react";
+import { PlayCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import LoadingSkeleton from "@/components/LoadingSkeleton";
+import { CoursesPurchasedSkeleton } from "@/components/LoadingSkeleton";
 import { useToast } from "@/hooks/use-toast";
 
-import { useAuth } from "@/contexts/AuthContext";
 import { useStudent } from "@/contexts/StudentContext";
 import { fetchStudentBoughtCoursesRequest } from "@/services";
 
@@ -22,7 +21,6 @@ export default function PurchasedCourses() {
         try {
             setLoadingState(true);
             const data = await fetchStudentBoughtCoursesRequest();
-            console.log(data);
             setStudentBoughtCoursesList(data?.courses);
             setLoadingState(false);
         } catch (error) {
@@ -35,12 +33,15 @@ export default function PurchasedCourses() {
         }    
     }
 
+    const handleImageError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+        e.currentTarget.src = '/placeholder.svg';
+    };
 
     useEffect(() => {
         fetchStudentBoughtCourses();
     }, []);
 
-    if (loadingState) return <LoadingSkeleton />;
+    if (loadingState) return <CoursesPurchasedSkeleton />;
 
     return (
         <div className="p-4">
@@ -51,9 +52,10 @@ export default function PurchasedCourses() {
                     <Card key={course.id} className="flex flex-col">
                     <CardContent className="p-4 flex-grow">
                         <img
-                        src={course?.imageUrl}
-                        alt={course?.title}
-                        className="h-52 w-full object-cover rounded-md mb-4"
+                            src={course?.imageUrl}
+                            alt={course?.title}
+                            className="h-52 w-full object-cover rounded-md mb-4"
+                            onError={handleImageError}
                         />
                         <h3 className="font-bold mb-1">{course?.title}</h3>
                         <p className="text-sm text-gray-700 mb-2">
@@ -63,7 +65,7 @@ export default function PurchasedCourses() {
                     <CardFooter>
                         <Button
                         onClick={() =>
-                            navigate(`/course-progress/${course?.id}`)
+                            navigate(`/course/progress/${course?.id}`)
                         }
                         className="flex-1"
                         >
