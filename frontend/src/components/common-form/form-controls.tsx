@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Textarea } from "../ui/textarea";
+import MDEditor from '@uiw/react-md-editor';
 
 
 interface FormControlsProps {
@@ -68,17 +69,27 @@ function FormControls({ formControls = [], formData, setFormData } : FormControl
         break;
       case "textarea":
         element = (
-          <Textarea
+          <MDEditor
             id={getControlItem.name}
-            name={getControlItem.name}
-            placeholder={getControlItem.placeholder}
             value={currentControlItemValue}
-            onChange={(event) =>
+            onChange={(value) =>
               setFormData({
                 ...formData,
-                [getControlItem.name]: event.target.value,
+                [getControlItem.name]: value || '',
               })
             }
+            preview="edit"
+            height={400}
+            hideToolbar={false}
+            visibleDragbar={false}
+            className="w-full rounded-md"
+            previewOptions={{
+              className: "bg-background text-foreground",
+            }}
+            textareaProps={{
+              placeholder: getControlItem.placeholder,
+              className: "bg-background text-foreground"
+            }}
           />
         );
         break;

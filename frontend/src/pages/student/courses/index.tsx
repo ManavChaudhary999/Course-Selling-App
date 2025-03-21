@@ -21,6 +21,7 @@ import {
 } from "@/services";
 import { useToast } from "@/hooks/use-toast";
 import { CourseCardSkeleton } from "@/components/LoadingSkeleton";
+import { useAuth } from "@/contexts/AuthContext";
 
 function createSearchParamsHelper(filterParams: any) {
   const queryParams: any[] = [];
@@ -37,19 +38,21 @@ function createSearchParamsHelper(filterParams: any) {
 }
 
 function StudentViewCoursesPage() {
+  const [_, setSearchParams] = useSearchParams();
   const [sort, setSort] = useState("price-lowtohigh");
   const [filters, setFilters] = useState(()=> {
     const storedFilters = sessionStorage.getItem("filters");
     return storedFilters ? JSON.parse(storedFilters) : {};
   });
-
-  const [searchParams, setSearchParams] = useSearchParams();
+  
   const {
     studentViewCoursesList,
     setStudentViewCoursesList,
     loadingState,
     setLoadingState,
   } = useStudent();
+
+  const  { user } = useAuth();
 
   const navigate = useNavigate();
   const {toast} = useToast();
@@ -93,7 +96,6 @@ function StudentViewCoursesPage() {
         query.append('sortBy', sort);
     }
 
-    console.log("Query: ", query.toString());
     try {
         setLoadingState(true);
         const data = await fetchStudentViewCourseListRequest(query.toString());
@@ -119,6 +121,11 @@ function StudentViewCoursesPage() {
   }
 
   async function handleCourseNavigate(getCurrentCourseId: string) {
+    if(!user) {
+      navigate(`/course/details/${getCurrentCourseId}`);
+      return;
+    }
+
     const coursePurchaseStatus = await checkCoursePurchaseStatusRequest(getCurrentCourseId);
     
     coursePurchaseStatus?.isEnrolled ?
@@ -147,7 +154,7 @@ function StudentViewCoursesPage() {
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-4">All Courses</h1>
       <div className="flex flex-col md:flex-row gap-4">
-        <aside className="w-full md:w-64 space-y-4">
+        <aside className="w-full md:h-screen md:border-r-2 md:w-64 md:space-y-4">
           <div>
             {Object.keys(filterOptions).map((ketItem: string) => (
               <div className="p-4 border-b" key={ketItem}>
@@ -213,7 +220,7 @@ function StudentViewCoursesPage() {
               studentViewCoursesList.map((courseItem) => (
                 <Card
                   onClick={() => handleCourseNavigate(courseItem.id)}
-                  className="cursor-pointer h-full"
+                  className="h-full hover:shadow-md transition-shadow duration-200 cursor-pointer"
                   key={courseItem.id}
                 >
                   <CardContent className="flex flex-col p-4 h-full">

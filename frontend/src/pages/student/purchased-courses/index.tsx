@@ -76,7 +76,18 @@ export default function PurchasedCourses() {
                     </Card>
                 ))
                 ) : (
-                <h1 className="text-3xl font-bold">No Courses found</h1>
+                    <div className="col-span-full flex flex-col items-center justify-center py-12">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">No Courses Purchased Yet</h2>
+                        <p className="text-gray-600 text-center mb-6 max-w-md">
+                            Explore our course catalog and start your learning journey today!
+                        </p>
+                        <Button 
+                            onClick={() => navigate('/courses')}
+                            className="bg-black text-white hover:bg-gray-800"
+                        >
+                            Browse Courses
+                        </Button>
+                    </div>
                 )}
             </div>
         </div>

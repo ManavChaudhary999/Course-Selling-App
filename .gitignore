@@ -18,3 +18,5 @@
 
 # Ignore Migration File
 /http/prisma/migrations/
+
+.vscode

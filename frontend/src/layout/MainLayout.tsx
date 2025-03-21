@@ -1,70 +1,76 @@
-import {Outlet, useLocation} from 'react-router-dom';
-import { BookOpen, LayoutDashboard, Settings, SearchIcon } from 'lucide-react';
-import {Sidebar} from '../components/Sidebar';
-import {UserNav} from '../components/UserNav';
+import { Outlet, Link } from "react-router-dom";
+import { GraduationCap } from "lucide-react";
 
-const studentNavItems = [
-  {
-    title: "Explore",
-    href: "/",
-    // icon: LayoutDashboard,
-    icon: SearchIcon,
-  },
-  {
-    title: "Courses",
-    href: "/courses",
-    icon: BookOpen,
-  },
-  {
-    title: "My Courses",
-    href: "/courses/purchased",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Settings",
-    href: "/settings",
-    icon: Settings,
-  },
-]
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { UserNav } from "./UserNav";
 
-const instructorNavItems = [
-  {
-    title: "Dashboard",
-    href: "/instructor",
-    icon: LayoutDashboard,
-  },
-  {
-    title: "Courses",
-    href: "/instructor/courses",
-    icon: BookOpen,
-  },
-  {
-    title: "Settings",
-    href: "/instructor/settings",
-    icon: Settings,
-  },
-]
 
-export default function MainLayout() {
-  const location = useLocation();
-  const isInstructor = location.pathname.startsWith("/instructor");
-  const items = isInstructor ? instructorNavItems : studentNavItems;
+export default function MainLayout() {  
+  const { user } = useAuth();
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar items={items} />
-      <div className="flex-1">
-        <header className="border-b">
-          <div className="flex h-16 items-center px-4">
-            <div className="ml-auto flex items-center space-x-4">
-              <UserNav />
+    <div className="min-h-screen bg-white">
+      <nav className="border-b">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-4">
+              <Link to="/" className="flex items-center space-x-2">
+                <GraduationCap className="h-8 w-8 mr-4" />
+                <span className="hidden font-bold text-2xl lg:inline-block">
+                  EduVista
+                </span>
+              </Link>
+              {/* <div className="hidden lg:flex relative flex-1 max-w-[400px]">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  type="search"
+                  placeholder="Search for anything"
+                  className="w-full pl-10 pr-4 py-2 border rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div> */}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <Link to="/courses" className="hidden lg:block text-sm font-semibold">
+                Explore
+              </Link>
+              {
+                user ? (
+                  <>
+                    <Link to="/courses/purchased" className="hidden lg:block text-sm font-semibold">
+                      My Courses
+                    </Link>
+                    <UserNav />
+                  </>
+                ) : (
+                  <>
+                    <Link to="/instructor/signup" className="hidden lg:block text-sm font-semibold">
+                      Teach on EduVista
+                    </Link>
+                    
+                    <Link to="/login">
+                      <Button variant="outline" className="font-semibold">
+                        Log in
+                      </Button>
+                    </Link>
+                    <Link to="/signup">
+                      <Button className="bg-black text-white hover:bg-gray-800">
+                        Sign up
+                      </Button>
+                    </Link>
+                  </>
+                )
+              }
             </div>
           </div>
-        </header>
-        <main className="flex-1 space-y-4 p-8 pt-6">
-          <Outlet />
-        </main>
-      </div>
+        </div>
+      </nav>
+      <main className="flex-1 p-8 pt-6">
+        <Outlet />
+      </main>
     </div>
   );
 }

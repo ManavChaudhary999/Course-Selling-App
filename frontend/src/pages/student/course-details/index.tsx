@@ -20,6 +20,9 @@ import { checkCoursePurchaseStatusRequest, fetchStudentViewCourseDetailsRequest 
 import { LectureType } from "@/types"
 import { CourseDetailsSkeleton } from "@/components/LoadingSkeleton";
 import { RazorpayButton } from "@/components/RazorpayButton";
+import { useAuth } from "@/contexts/AuthContext";
+import MarkdownViewer from "@/components/MarkdownViewer";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 export default function CourseDetailsPage() {
     const params = useParams();
@@ -35,19 +38,23 @@ export default function CourseDetailsPage() {
         setLoadingState,
     } = useStudent();
 
+    const { user } = useAuth();
+
     const [displayCurrentVideoFreePreview, setDisplayCurrentVideoFreePreview] = useState('');
     const [showFreePreviewDialog, setShowFreePreviewDialog] = useState(false);
 
     async function fetchStudentViewCourseDetails() {
         
         try {
-            setLoadingState(true);
-            const coursePurchaseStatus = await checkCoursePurchaseStatusRequest(currentCourseDetailsId);
-            
-            if (coursePurchaseStatus?.isEnrolled) {
-                setLoadingState(false);
-                navigate(`/course/progress/${currentCourseDetailsId}`);
-                return;
+            if(user) {
+                setLoadingState(true);
+                const coursePurchaseStatus = await checkCoursePurchaseStatusRequest(currentCourseDetailsId);
+                
+                if (coursePurchaseStatus?.isEnrolled) {
+                    setLoadingState(false);
+                    navigate(`/course/progress/${currentCourseDetailsId}`);
+                    return;
+                }
             }
             
             setLoadingState(true);
@@ -87,8 +94,6 @@ export default function CourseDetailsPage() {
 
     if (loadingState) return <CourseDetailsSkeleton />;
 
-    const getIndexOfFreePreviewUrl = studentViewCourseDetails?.lectures?.findIndex((item) => item.preview) ?? -1;
-
     return (
         <div className=" mx-auto p-4">
             <div className="bg-gray-900 text-white p-8 rounded-t-lg">
@@ -106,16 +111,21 @@ export default function CourseDetailsPage() {
                     </span>
                 </div>
             </div>
-            <div className="flex flex-col md:flex-row gap-8 mt-8">
+            <div className="flex flex-col-reverse md:flex-row gap-8 mt-8">
                 <main className="flex-grow">
                     <Card className="mb-8">
                         <CardHeader>
-                            <CardTitle>Course Description</CardTitle>
+                            <CardTitle className="text-2xl">Course Description</CardTitle>
                         </CardHeader>
-                        <CardContent>{studentViewCourseDetails?.description}</CardContent>
+                        <CardContent className="p-6">
+                            <ScrollArea className="h-[400px] rounded-md pr-2">
+                                <MarkdownViewer content={studentViewCourseDetails?.description!!} />
+                                <ScrollBar orientation="vertical" />
+                            </ScrollArea>
+                        </CardContent>
                     </Card>
                     <Card className="mb-8">
-                        <CardHeader>
+                        <CardHeader >
                             <CardTitle>Course Curriculum</CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -141,20 +151,14 @@ export default function CourseDetailsPage() {
                         </CardContent>
                     </Card>
                 </main>
-                <aside className="w-full md:w-[500px]">
+                <aside className="w-full md:w-[30%] flex-shrink-0">
                     <Card className="sticky top-4">
                         <CardContent className="p-6">
                             <div className="aspect-video mb-4 rounded-lg flex items-center justify-center">
-                                <VideoPlayer
-                                    url={
-                                    getIndexOfFreePreviewUrl !== -1
-                                        ? studentViewCourseDetails?.lectures[
-                                            getIndexOfFreePreviewUrl
-                                        ].videoUrl
-                                        : ""
-                                    }
-                                    width="450px"
-                                    height="200px"
+                                <img
+                                    src={studentViewCourseDetails?.imageUrl}
+                                    className="w-full h-full object-cover rounded-md"
+                                    alt={studentViewCourseDetails?.title}
                                 />
                             </div>
                             <div className="flex items-center gap-1 mb-4">
@@ -163,24 +167,33 @@ export default function CourseDetailsPage() {
                                     {studentViewCourseDetails?.price}
                                 </span>
                             </div>
-                            <RazorpayButton
-                                courseId={currentCourseDetailsId}
-                                onSuccess={() => {
-                                    toast({
-                                        title: "Success",
-                                        description: "Course purchased successfully",
-                                        variant: "success"
-                                    })
-                                    location.reload();
-                                }}
-                                onError={(error) => {
-                                    toast({
-                                        title: "Error",
-                                        description: error.message,
-                                        variant: "destructive"
-                                    })
-                                }}
-                            />
+                            {user ? (
+                                <RazorpayButton
+                                    courseId={currentCourseDetailsId}
+                                    onSuccess={() => {
+                                        toast({
+                                            title: "Success",
+                                            description: "Course purchased successfully",
+                                            variant: "success"
+                                        })
+                                        location.reload();
+                                    }}
+                                    onError={(error) => {
+                                        toast({
+                                            title: "Error",
+                                            description: error.message,
+                                            variant: "destructive"
+                                        })
+                                    }}
+                                />
+                            ) : (
+                                <Button 
+                                    className="w-full" 
+                                    onClick={() => navigate('/login')}
+                                >
+                                    Log in to Purchase
+                                </Button>
+                            )}
                         </CardContent>
                     </Card>
                 </aside>

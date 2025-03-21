@@ -106,7 +106,7 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
         const isPasswordValid = await bcrypt.compare(password, user.password);
 
         if (!isPasswordValid) {
-            res.status(401).json({ message: "Invalid User Credentials" });
+            res.status(401).json({ message: "Invalid Password" });
             return;
         }
 
@@ -133,7 +133,8 @@ userRouter.post("/signin", async (req: Request, res: Response) => {
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                role: user.role,
+                profileUrl: user.profileUrl,
             }
         });
     } catch (error) {
@@ -276,7 +277,6 @@ userRouter.post("/profile", AuthMiddleware, async (req, res) => {
                     id: userId
                 },
                 data: {
-                    profileUrl: url,
                     profilePublicId: publicId
                 }
             });

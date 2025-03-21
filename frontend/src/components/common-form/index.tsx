@@ -18,7 +18,7 @@ function CommonForm({
   formData,
   setFormData,
   isButtonDisabled = false,
-}) {
+} : CommonFormProps) {
   return (
     <form onSubmit={handleSubmit}>
       {/* render form controls here */}

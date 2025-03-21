@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { UserType } from '../types';
 import { LoginFormData, RegisterFormData } from '@/types/auth-form';
 import { LoginRequest, ProfileRequest, SignupRequest } from '@/services';
-import { LoginSkeleton } from '@/components/LoadingSkeleton';
 
 interface AuthContextType {
   user: UserType | null;
@@ -104,9 +103,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {loading ? (
-        <LoginSkeleton />
-      ) : children}
+      {children}
     </AuthContext.Provider>
   );
 };

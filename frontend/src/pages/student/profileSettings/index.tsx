@@ -78,7 +78,7 @@ export default function SettingsPage() {
   
         setIsEditing(false);
         form.reset();
-        refreshUser();
+        await refreshUser();
         toast({
           title: "Profile updated successfully",
           variant: "success"

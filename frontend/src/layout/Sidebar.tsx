@@ -1,6 +1,8 @@
 import {Link, useLocation} from "react-router-dom";
 import { cn } from "@/lib/utils"
-import { GraduationCap } from 'lucide-react';
+import { GraduationCap, LogOut } from 'lucide-react';
+import { Button } from "../components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SidebarItem {
   title: string;
@@ -9,15 +11,16 @@ interface SidebarItem {
 }
 export function Sidebar({items} : {items: SidebarItem[]}) {
   const location = useLocation();
+  const { logout } = useAuth();
 
   return (
     <div className="flex h-screen w-[64px] flex-col justify-between border-r bg-gray-100/40 lg:w-[240px]">
       <div className="flex flex-col">
         <div className="flex h-[64px] items-center px-6">
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to="/instructor" className="flex items-center space-x-2">
             <GraduationCap className="h-8 w-8 mr-4" />
-            <span className="hidden font-bold lg:inline-block">
-              Course Platform
+            <span className="hidden font-bold text-xl lg:inline-block">
+              EduVista
             </span>
           </Link>
         </div>
@@ -36,6 +39,10 @@ export function Sidebar({items} : {items: SidebarItem[]}) {
               <span className="hidden lg:inline-block">{item.title}</span>
             </Link>
           ))}
+          <Button className="w-full justify-start mb-2" onClick={()=> logout()}>
+            <LogOut className="mr-2 h-4 w-4" />  
+            Log Out
+          </Button>
         </nav>
       </div>
     </div>
