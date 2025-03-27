@@ -7,18 +7,30 @@ export interface CreateCourseFormData {
     category: string,
 }
 
+// Add isEdited flag to track changes
 export interface UpdateCourseFormData {
     title?: string,
     description?: string,
     price?: number,
     level?: 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED',
     category?: string,
-    // isPublished?: boolean,
 }
 
-export interface LectureFormData {
+export interface CreateLectureFormData {
     title: string,
     description?: string,
     video: File,
-    preview: boolean
+    preview: boolean,
+    id?: string,
+    publicId?: string,
+    isEdited?: boolean
+}
+
+export interface UpdateLectureFormData {
+    title?: string;
+    description?: string;
+    publicId?: string
+    videoUrl?: string;
+    preview?: boolean;
+    isEdited: boolean
 }

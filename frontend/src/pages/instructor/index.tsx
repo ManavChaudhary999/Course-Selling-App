@@ -130,8 +130,8 @@ function InstructorDashboard() {
                   <TableRow>
                     <TableCell colSpan={6} align="center" className="h-24 text-lg">No students found</TableCell>
                   </TableRow>
-                ) : (studentList.map((studentItem) => (
-                      <TableRow key={studentItem.studentId}>
+                ) : (studentList.map((studentItem, index) => (
+                      <TableRow key={`${studentItem.studentId}-${index}`}>
                         <TableCell className="font-medium">
                           {studentItem.courseTitle}
                         </TableCell>

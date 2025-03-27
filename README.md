@@ -1,4 +1,4 @@
-# EduVista: LMS Platoform
+# EduVista: LMS Platoform -> [Live](https://eduvista.manavchaudhary.tech/)
 
 ## Description
 This is a simple LMS platform built with Nodejs and React.

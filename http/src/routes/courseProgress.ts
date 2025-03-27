@@ -15,7 +15,11 @@ courseProgressRouter.get('/:id', AuthMiddleware, async (req: Request, res: Respo
                 id: courseId,
             },
             include: {
-                lectures: true,
+                lectures: {
+                    orderBy: {
+                        createdAt: 'asc'
+                    },
+                },
                 enrollments: true,
             }
         });

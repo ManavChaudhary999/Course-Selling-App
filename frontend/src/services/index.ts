@@ -1,6 +1,6 @@
 import API from "@/api/axios";
 import { LoginFormData, ProfileFormData, RegisterFormData } from "@/types/auth-form";
-import { CreateCourseFormData, LectureFormData, UpdateCourseFormData } from "@/types/course-form";
+import { CreateCourseFormData, CreateLectureFormData, UpdateCourseFormData } from "@/types/course-form";
 import axios, { AxiosError } from "axios";
 
 // ---------------- Auth Requests -------------------
@@ -152,16 +152,12 @@ export async function addNewCourseRequest(formData: CreateCourseFormData, onProg
   }
 }
 
-export async function updateCourseByIdRequest(courseId: string, formData: UpdateCourseFormData) {
+export async function updateCourseRequest(courseId: string, formData: UpdateCourseFormData) {
   try {
-    const {title, description, price, level, category} = formData;
-
+    
     const { data } = await API.put(`/course/${courseId}`, {
-      title,
-      description,
-      price: Number(price),
-      level,
-      category,
+      ...formData,
+      ...(formData.price && { price: Number(formData.price) }),
     });
 
     return data;
@@ -172,7 +168,7 @@ export async function updateCourseByIdRequest(courseId: string, formData: Update
   }
 }
 
-export async function addLectureRequest(courseId: string, formData: LectureFormData, onProgressCallback: (progress: number) => void) {
+export async function addLectureRequest(courseId: string, formData: CreateLectureFormData, onProgressCallback: (progress: number) => void) {
   try {
     const {title, description, video, preview} = formData;
     
@@ -213,7 +209,7 @@ export async function addLectureRequest(courseId: string, formData: LectureFormD
   }
 }
 
-export async function updateLectureRequest(courseId: string, lectureId: string, formData: LectureFormData) {
+export async function updateLectureRequest(courseId: string, lectureId: string, formData: CreateLectureFormData) {
   try {
     const {title, description, preview} = formData;
     

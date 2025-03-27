@@ -586,7 +586,7 @@ courseRouter.put('/:id/lecture/:lectureId', AuthMiddleware, async (req: Request,
 
         const {title, description, preview, video} = data;
 
-        if(video?.name && video?.type){
+        if(video?.name && video?.type && video?.size < 50 * 1024 * 1024){
             const {publicId, url} = await GetLectureUploadUrl(courseId, lectureId, video.name, video.type);
             
             const lecture = await db.lecture.update({

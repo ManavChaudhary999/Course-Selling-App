@@ -11,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import VideoPlayer from "@/components/VideoPlayer";
 import { CourseProgressSkeleton } from "@/components/LoadingSkeleton";
@@ -25,6 +25,7 @@ import {
 } from "@/services";
 import { useStudent } from "@/contexts/StudentContext";
 import { LectureType } from "@/types";
+import MarkdownViewer from "@/components/MarkdownViewer";
 
 interface CurrentLecture extends LectureType {
     progressValue?: number;
@@ -51,35 +52,35 @@ export default function CourseProgressPage() {
                 
             if (!data?.isEnrolled) {
                 setLockCourse(true);
+                return;
+            }
+            
+            setStudentCurrentCourseProgress({
+                courseDetails: data?.course,
+                courseProgress: data?.courseProgress,
+            });
+
+            setCurrentLecture(data?.course?.lectures[0]);
+
+            if (data?.courseProgress?.completed) {
+                setShowCourseCompleteDialog(true);
+                setShowConfetti(true);
+
+                return;
+            }
+
+            if (data?.courseProgress?.lectureProgress?.[0].viewed === false) {
+                setCurrentLecture(data?.course?.lectures[0]);
             }
             else {
-                setStudentCurrentCourseProgress({
-                    courseDetails: data?.course,
-                    courseProgress: data?.courseProgress,
-                });
-    
-                setCurrentLecture(data?.course?.lectures[0]);
-    
-                if (data?.courseProgress?.completed) {
-                    setShowCourseCompleteDialog(true);
-                    setShowConfetti(true);
-    
-                    return;
-                }
-    
-                if (data?.courseProgress?.lectureProgress?.[0].viewed === false) {
-                    setCurrentLecture(data?.course?.lectures[0]);
-                }
-                else {
-                    const lastIndexOfViewedAsTrue = data?.courseProgress?.lectureProgress?.reduceRight(
-                        (acc: number, obj: { viewed: boolean }, index: number) => {
-                        return acc === -1 && obj.viewed ? index : acc;
-                        },
-                        -1
-                    );
-    
-                    setCurrentLecture(data?.course?.lectures[lastIndexOfViewedAsTrue + 1]);
-                }
+                const lastIndexOfViewedAsTrue = data?.courseProgress?.lectureProgress?.reduceRight(
+                    (acc: number, obj: { viewed: boolean }, index: number) => {
+                    return acc === -1 && obj.viewed ? index : acc;
+                    },
+                    -1
+                );
+
+                setCurrentLecture(data?.course?.lectures[lastIndexOfViewedAsTrue + 1]);
             }
         } catch (error) {
             toast({
@@ -253,9 +254,10 @@ export default function CourseProgressPage() {
                             <ScrollArea className="h-[calc(100vh-15rem)]">
                                 <div className="p-6">
                                     <h2 className="text-xl font-bold mb-4">About this course</h2>
-                                    <p className="text-muted-foreground">
-                                        {studentCurrentCourseProgress?.courseDetails?.description}
-                                    </p>
+                                    <ScrollArea className="h-full rounded-md pr-2">
+                                        <MarkdownViewer content={studentCurrentCourseProgress?.courseDetails?.description!!} />
+                                        <ScrollBar orientation="vertical" />
+                                    </ScrollArea>
                                 </div>
                             </ScrollArea>
                         </TabsContent>

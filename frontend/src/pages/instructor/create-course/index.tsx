@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import CourseCurriculum from "./course-curriculam";
 import CourseLanding from "./course-landing";
@@ -7,17 +7,18 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useInstructor } from "@/contexts/InstructorContext";
-import { addLectureRequest, addNewCourseRequest, fetchInstructorCourseDetailsRequest, updateCourseByIdRequest, updateLectureRequest } from "@/services";
+import { addLectureRequest, addNewCourseRequest, fetchInstructorCourseDetailsRequest, updateCourseRequest, updateLectureRequest } from "@/services";
 import { useToast } from "@/hooks/use-toast";
 import {
   courseCurriculumInitialFormData,
   courseLandingInitialFormData,
 } from "@/config";
-import { CreateCourseFormData, LectureFormData, UpdateCourseFormData } from "@/types/course-form";
+import { CreateCourseFormData, UpdateCourseFormData } from "@/types/course-form";
 import { Skeleton } from "@/components/ui/skeleton";
 import MediaProgressbar from "@/components/MediaProgressBar";
 
 function CreateCoursePage() {
+  const [courseLandingFetchedData, setCourseLandingFetchedData] = useState<any>(courseLandingInitialFormData);
   const {
     courseLandingFormData,
     courseCurriculumFormData,
@@ -126,55 +127,68 @@ function CreateCoursePage() {
   }
   
   async function handleUpdateCourse() {
-    const courseFinalFormData: UpdateCourseFormData = {
-      ...courseLandingFormData,
-    };
-
     try {      
+  
       toast({
-        title: `Updating Course...)`,
-        description: 'Please wait while we Update your course.',
+        title: "Updating Course...",
+        description: 'Please wait while we update your course.',
         variant: "default"
-      })
+      });
 
-      
-      await updateCourseByIdRequest(currentEditedCourseId, courseFinalFormData);
-      
-      for(let i = 0; i < courseCurriculumFormData.length; i++){
-        const lectureFormData: LectureFormData = courseCurriculumFormData[i];
-        
-        toast({
-          title: `Uploading Lecture${i + 1}`,
-          description: 'Please wait while we update your lecture.',
-          variant: "default"
-        })
-        
-        if(courseCurriculumFormData[i].publicId){
-          await updateLectureRequest(currentEditedCourseId, courseCurriculumFormData[i].id, lectureFormData);
-          
-          toast({
-            title: `Lecture${i + 1} Updated Successfully`,
-            variant: "success"
-          })
+      const courseFinalFormData: UpdateCourseFormData = {};
+  
+      // Only update course details of key whose value is changed
+      Object.keys(courseLandingFormData).forEach(key => {
+        if (courseLandingFormData[key] !== courseLandingFetchedData[key]) {
+          // @ts-ignore
+          courseFinalFormData[key] = courseLandingFormData[key];
         }
-        else {
-          setMediaUploadProgress(true);
+      });
+      if(Object.keys(courseFinalFormData).length > 0) await updateCourseRequest(currentEditedCourseId, courseFinalFormData);
+
+      // Update lectures
+      for(let i = 0; i < courseCurriculumFormData.length; i++) {
+        const lecture = courseCurriculumFormData[i];
+        
+        // If lecture is modified
+        if (lecture.publicId) {
+          toast({
+            title: `Updating Lecture ${i + 1}`,
+            description: `Please wait while we update your lecture.`,
+            variant: "default"
+          });
           
-          await addLectureRequest(currentEditedCourseId, lectureFormData, setMediaUploadProgressPercentage);
+          await updateLectureRequest(currentEditedCourseId, lecture.id!, lecture);
+            
+          toast({
+            title: `Lecture ${i + 1} Updated Successfully`,
+            variant: "success"
+          });
+        } else { // If lecture is Added
+          setMediaUploadProgress(true);
+
+          toast({
+            title: `Adding Lecture ${i + 1}`,
+            description: `Please wait while we add your lecture.`,
+            variant: "default"
+          });
+
+          await addLectureRequest(currentEditedCourseId, lecture, setMediaUploadProgressPercentage);
           
           toast({
-            title: `Lecture${i + 1} Uploaded Successfully`,
+            title: `Lecture ${i + 1} Added Successfully`,
             variant: "success"
-          })
+          });
         }
       }
-
+  
       toast({
         title: 'Course Updated Successfully',
         variant: "success"
-      })
-
+      });
+  
       setCourseLandingFormData(courseLandingInitialFormData);
+      setCourseLandingFetchedData(courseLandingInitialFormData);
       setCourseCurriculumFormData(courseCurriculumInitialFormData);
       setCurrentEditedCourseId(null);
       setMediaUploadProgress(false);
@@ -184,10 +198,10 @@ function CreateCoursePage() {
         title: 'Could Not Update Course',
         description: (err as Error).message,
         variant: "destructive"
-      })
+      });
       setMediaUploadProgress(false);
     }
-  }
+  } 
 
   async function fetchCurrentCourseDetails() {
     try {
@@ -206,6 +220,7 @@ function CreateCoursePage() {
         }, {});
   
         setCourseLandingFormData(setCourseFormData);
+        setCourseLandingFetchedData(setCourseFormData);
         setCourseCurriculumFormData(data?.course?.lectures);
         setLoading(false);
       }  

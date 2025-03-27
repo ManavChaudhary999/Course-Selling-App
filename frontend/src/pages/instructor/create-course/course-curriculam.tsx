@@ -139,7 +139,7 @@ function CourseCurriculum({courseId}: {courseId: string}) {
         </Button>
         <div className="mt-4 space-y-4">
           {courseCurriculumFormData.map((curriculumItem: any, index: any) => (
-            <div className="border p-5 rounded-md">
+            <div key={`lecture-${index}`} className="border p-5 rounded-md">
               <div className="flex gap-5 items-center">
                 <h3 className="font-semibold">Lecture {index + 1}</h3>
                 <Label htmlFor={`title-${index + 1}`}>

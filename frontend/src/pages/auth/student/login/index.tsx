@@ -24,7 +24,7 @@ export default function Login() {
         title: 'Logged In Successfully',
         variant: "success"
       })
-      navigate('/');
+      navigate(-1);
     } catch (err) {
       toast({
         title: 'Could Not Login',

@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Delete, Edit, IndianRupee } from "lucide-react";
+import { Edit, IndianRupee } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -99,7 +99,7 @@ function InstructorCourses() {
             <TableBody>
               {instructorCoursesList?.length > 0
                 ? instructorCoursesList.map((course) => (
-                    <TableRow>
+                    <TableRow key={course.id}>
                       <TableCell className="font-medium">
                         {course.title}
                       </TableCell>

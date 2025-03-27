@@ -176,7 +176,7 @@ export default function CourseDetailsPage() {
                                             description: "Course purchased successfully",
                                             variant: "success"
                                         })
-                                        location.reload();
+                                        navigate(`/course/progress/${currentCourseDetailsId}`);
                                     }}
                                     onError={(error) => {
                                         toast({
@@ -221,6 +221,7 @@ export default function CourseDetailsPage() {
                         ?.filter((item) => item.preview)
                         .map((filteredItem) => (
                         <p
+                            key={filteredItem.id}
                             onClick={() => handleSetFreePreview(filteredItem)}
                             className="cursor-pointer text-[16px] font-medium"
                         >

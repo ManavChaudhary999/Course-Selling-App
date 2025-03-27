@@ -133,6 +133,7 @@ interface courseCurriculumInitialFormDataType {
   video: File | null;
   videoUrl: string;
   preview: boolean;
+  isEdited?: boolean
 }
 export const courseCurriculumInitialFormData: courseCurriculumInitialFormDataType[] = [
   {

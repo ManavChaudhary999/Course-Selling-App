@@ -33,7 +33,7 @@ export function RazorpayButton({ courseId, onSuccess, onError }: RazorpayButtonP
         amount: order.amount,
         currency: order.currency,
         name: course.title,
-        description: course.description,
+        // description: course.description,
         order_id: order.id,
         handler: async (response: any) => {
           try {
